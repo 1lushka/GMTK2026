@@ -121,4 +121,9 @@ public class TopDownController : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawRay(transform.position, velocity);
     }
+
+    public void ActivateRotation (bool activate)
+    {
+        rotateToMovement = activate;
+    }
 }
