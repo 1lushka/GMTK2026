@@ -44,7 +44,7 @@ public class TopDownController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotation;
-        rb.useGravity = false;
+        //rb.useGravity = false;
         rb.linearDamping = drag;
         rb.mass = mass;
 
@@ -91,6 +91,12 @@ public class TopDownController : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(velocity);
         Quaternion smoothRotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
         rb.MoveRotation(smoothRotation);
+    }
+
+    public void AddImpulse(Vector3 impulseVelocity)
+    {
+        velocity = impulseVelocity;
+        // контроллер сам погасит скорость, если нет ввода
     }
 
     void UpdateAnimation()

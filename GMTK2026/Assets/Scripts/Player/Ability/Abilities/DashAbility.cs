@@ -36,14 +36,11 @@ public class DashAbility : ActiveAbility
 
     private IEnumerator DashRoutine()
     {
-        // 1. Анимация подготовки (проигрывается мгновенно, триггер)
         if (animator != null)
             animator.SetTrigger(dashTrigger);
 
-        // 2. Ждём подготовительное время (анимация подготовки успевает проиграться)
         yield return new WaitForSeconds(windUpTime);
 
-        // 3. Запускаем партиклы
         if (dashParticle != null)
         {
             dashParticle.Clear();
