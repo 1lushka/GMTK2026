@@ -132,6 +132,8 @@ GameObject:
   - component: {fileID: 313980941}
   - component: {fileID: 313980940}
   - component: {fileID: 313980939}
+  - component: {fileID: 313980945}
+  - component: {fileID: 313980944}
   m_Layer: 0
   m_Name: Box (5)
   m_TagString: Untagged
@@ -147,7 +149,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 313980938}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -255,6 +257,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &313980944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313980938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &313980945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313980938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1 &394768879
 GameObject:
   m_ObjectHideFlags: 0
@@ -268,6 +305,8 @@ GameObject:
   - component: {fileID: 394768882}
   - component: {fileID: 394768881}
   - component: {fileID: 394768880}
+  - component: {fileID: 394768886}
+  - component: {fileID: 394768885}
   m_Layer: 0
   m_Name: Box (6)
   m_TagString: Untagged
@@ -283,7 +322,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 394768879}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -391,6 +430,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &394768885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 394768879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &394768886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 394768879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!4 &925953738 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3031788469969946939, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
@@ -972,6 +1046,8 @@ GameObject:
   - component: {fileID: 1506562563}
   - component: {fileID: 1506562562}
   - component: {fileID: 1506562561}
+  - component: {fileID: 1506562567}
+  - component: {fileID: 1506562566}
   m_Layer: 0
   m_Name: Box (2)
   m_TagString: Untagged
@@ -987,7 +1063,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1506562560}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1095,6 +1171,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1506562566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506562560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1506562567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506562560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1 &1666160464
 GameObject:
   m_ObjectHideFlags: 0
@@ -1202,6 +1313,8 @@ GameObject:
   - component: {fileID: 1714944380}
   - component: {fileID: 1714944379}
   - component: {fileID: 1714944378}
+  - component: {fileID: 1714944384}
+  - component: {fileID: 1714944383}
   m_Layer: 0
   m_Name: Box (4)
   m_TagString: Untagged
@@ -1217,7 +1330,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1714944377}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1325,6 +1438,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1714944383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714944377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1714944384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714944377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1 &1737646821
 GameObject:
   m_ObjectHideFlags: 0
@@ -1338,6 +1486,8 @@ GameObject:
   - component: {fileID: 1737646824}
   - component: {fileID: 1737646823}
   - component: {fileID: 1737646822}
+  - component: {fileID: 1737646828}
+  - component: {fileID: 1737646827}
   m_Layer: 0
   m_Name: Box
   m_TagString: Untagged
@@ -1353,7 +1503,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1737646821}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1461,6 +1611,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1737646827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737646821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1737646828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1737646821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1 &1814239555
 GameObject:
   m_ObjectHideFlags: 0
@@ -1595,6 +1780,8 @@ GameObject:
   - component: {fileID: 1945017694}
   - component: {fileID: 1945017693}
   - component: {fileID: 1945017692}
+  - component: {fileID: 1945017698}
+  - component: {fileID: 1945017697}
   m_Layer: 0
   m_Name: Box (3)
   m_TagString: Untagged
@@ -1610,7 +1797,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1945017691}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1718,6 +1905,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1945017697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945017691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1945017698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945017691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1 &1982038913
 GameObject:
   m_ObjectHideFlags: 0
@@ -1950,6 +2172,8 @@ GameObject:
   - component: {fileID: 2082441118}
   - component: {fileID: 2082441117}
   - component: {fileID: 2082441116}
+  - component: {fileID: 2082441122}
+  - component: {fileID: 2082441121}
   m_Layer: 0
   m_Name: Box (1)
   m_TagString: Untagged
@@ -1965,7 +2189,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2082441115}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.46
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -2073,6 +2297,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2082441121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2082441115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &2082441122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2082441115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d20a2aaa1359c94b9149d5efbc80794, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minCollisionSpeed: 4
+  collisionDamage: 1
+  destroyOnDeath: 1
+  destroyDelay: 0.5
 --- !u!1001 &1848519128733227934
 PrefabInstance:
   m_ObjectHideFlags: 0
