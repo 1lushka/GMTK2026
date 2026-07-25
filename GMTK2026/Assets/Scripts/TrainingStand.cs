@@ -71,7 +71,7 @@ public class TrainingStand : MonoBehaviour
             // Отбрасываем игрока независимо от того, запустили вращение или нет (физика могла уже сработать)
             Rigidbody playerRb = other.attachedRigidbody;
             if (playerRb == null) playerRb = other.GetComponentInParent<Rigidbody>();
-            ApplyPush(playerRb, contactPoint);
+            //ApplyPush(playerRb, contactPoint);
         }
         // Во время вращения (своя угловая скорость или от физики) наносим урон и отбрасываем
         else if (Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg > spinThreshold)
