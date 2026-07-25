@@ -153,8 +153,8 @@ MonoBehaviour:
   abilityDefinition: {fileID: 11400000, guid: 68c751bc7ada62d4fbb648b2d0462d62, type: 2}
   activationKey: 32
   cooldown: 0.5
-  dashSpeed: 20
-  dashDuration: 0.15
+  dashSpeed: 30
+  dashDuration: 0.2
   windUpTime: 0.2
   dashTrigger: Dash
   useAnimator: 1
