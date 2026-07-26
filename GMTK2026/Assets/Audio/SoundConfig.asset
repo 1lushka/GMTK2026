@@ -291,11 +291,11 @@ MonoBehaviour:
   - id: 36
     clips:
     - {fileID: 8300000, guid: c5e2a73ad4706440f93bf05df0b465fe, type: 3}
-    volume: 0.5
+    volume: 0.212
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 0
     cooldown: 0
-    maxVoices: 2
+    maxVoices: 1
   - id: 37
     clips: []
     volume: 1
