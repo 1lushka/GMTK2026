@@ -17,16 +17,22 @@ MonoBehaviour:
   musicVolume: 0.7
   sounds:
   - id: 0
-    clips: []
-    volume: 1
-    pitchRange: {x: 0.95, y: 1.05}
+    clips:
+    - {fileID: 8300000, guid: 47b020aaf939d4d35a5b0c0033d07e4c, type: 3}
+    - {fileID: 8300000, guid: ae56d163a6ab94f86bf5371fbe087741, type: 3}
+    - {fileID: 8300000, guid: 81d268bd1d7d3498fb049ef73fe8ec63, type: 3}
+    - {fileID: 8300000, guid: 3f0d3c35e5fc142e1a7580e0be35c567, type: 3}
+    - {fileID: 8300000, guid: 449fa84f601f44e1fa83919f7b8ed5ab, type: 3}
+    volume: 0.178
+    pitchRange: {x: 1, y: 2}
     spatial3D: 0
-    cooldown: 0.08
-    maxVoices: 4
+    cooldown: 0
+    maxVoices: 1
   - id: 1
-    clips: []
-    volume: 1
-    pitchRange: {x: 0.95, y: 1.05}
+    clips:
+    - {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
+    volume: 0.262
+    pitchRange: {x: 8, y: 12}
     spatial3D: 0
     cooldown: 0
     maxVoices: 2
@@ -38,35 +44,43 @@ MonoBehaviour:
     cooldown: 0
     maxVoices: 2
   - id: 3
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
+    - {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 0
     cooldown: 0
     maxVoices: 2
   - id: 4
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
+    - {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
     cooldown: 0.08
     maxVoices: 4
   - id: 5
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
+    - {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
     cooldown: 0.08
     maxVoices: 4
   - id: 6
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 4b4dd7245f6104c8c8eb07ccf6b386ed, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
     cooldown: 0
     maxVoices: 2
   - id: 7
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 7bef0064f8567430cac22499c6b93d4f, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 0
@@ -75,7 +89,7 @@ MonoBehaviour:
   - id: 8
     clips: []
     volume: 1
-    pitchRange: {x: 0.95, y: 1.05}
+    pitchRange: {x: 5, y: 15}
     spatial3D: 1
     cooldown: 0
     maxVoices: 2
@@ -199,28 +213,33 @@ MonoBehaviour:
     cooldown: 0
     maxVoices: 2
   - id: 26
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: 80e397195ea2940b69ee7bdbded856a5, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
     cooldown: 0
     maxVoices: 2
   - id: 27
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: d8d04c6f80a1140db85ede568dab1f51, type: 3}
+    - {fileID: 8300000, guid: 80e397195ea2940b69ee7bdbded856a5, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
     cooldown: 0
     maxVoices: 2
   - id: 28
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: d8d04c6f80a1140db85ede568dab1f51, type: 3}
     volume: 1
-    pitchRange: {x: 0.95, y: 1.05}
+    pitchRange: {x: 0.95, y: 3}
     spatial3D: 1
     cooldown: 0.08
     maxVoices: 4
   - id: 29
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: d8d04c6f80a1140db85ede568dab1f51, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
