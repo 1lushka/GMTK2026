@@ -20,17 +20,16 @@ public class PunchComboTrigger : MonoBehaviour
     [SerializeField] private Ease returnEase = Ease.InQuad;
 
     [Header("Final Hit")]
+    [Tooltip("Impulse force. The target profile converts it to speed.")]
     [Min(0f)]
     [SerializeField] private float impulseDistance = 4f;
-    [Min(0f)]
-    [SerializeField] private float impulseDuration = 0.25f;
-    [SerializeField] private Ease impulseEase = Ease.OutQuad;
 
     private sealed class TargetState
     {
         public readonly HashSet<Collider> Colliders = new HashSet<Collider>();
         public HealthComponent Health;
         public PunchComboTargetMotion Motion;
+        public ImpulseReceiver ImpulseReceiver;
         public float AccumulatedDamage;
     }
 
@@ -64,7 +63,15 @@ public class PunchComboTrigger : MonoBehaviour
             if (target.Health == null) continue;
 
             target.Health.SetStunned(false);
-            target.Motion.ApplyImpulse(direction, impulseDistance, impulseDuration, returnDuration, impulseEase);
+            if (target.ImpulseReceiver != null)
+            {
+                Vector2 impulseDirection = new Vector2(direction.x, direction.z);
+                target.ImpulseReceiver.ApplyImpulse(impulseDirection, impulseDistance, transform.root.gameObject);
+            }
+            else
+            {
+                target.Motion.ReturnToGround(returnDuration, returnEase);
+            }
         }
 
         targets.Clear();
@@ -114,7 +121,8 @@ public class PunchComboTrigger : MonoBehaviour
             target = new TargetState
             {
                 Health = health,
-                Motion = motion
+                Motion = motion,
+                ImpulseReceiver = health.GetComponent<ImpulseReceiver>()
             };
             targets.Add(health, target);
             health.SetStunned(true);

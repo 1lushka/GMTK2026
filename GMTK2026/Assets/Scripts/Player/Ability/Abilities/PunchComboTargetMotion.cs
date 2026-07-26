@@ -32,29 +32,6 @@ public class PunchComboTargetMotion : MonoBehaviour
             .OnComplete(ForgetGroundHeight);
     }
 
-    public void ApplyImpulse(Vector3 direction, float distance, float duration, float returnDuration, Ease ease)
-    {
-        if (!hasGroundY)
-        {
-            groundY = transform.position.y;
-            hasGroundY = true;
-        }
-
-        direction.y = 0f;
-        direction = direction.sqrMagnitude > 0f ? direction.normalized : transform.forward;
-
-        Vector3 destination = transform.position + direction * distance;
-        destination.y = groundY;
-
-        KillMovementTween();
-        Sequence sequence = DOTween.Sequence().SetLink(gameObject);
-        sequence.Join(transform.DOMoveX(destination.x, duration).SetEase(ease));
-        sequence.Join(transform.DOMoveZ(destination.z, duration).SetEase(ease));
-        sequence.Join(transform.DOMoveY(groundY, returnDuration).SetEase(ease));
-        sequence.OnComplete(ForgetGroundHeight);
-        movementTween = sequence;
-    }
-
     private void KillMovementTween()
     {
         if (movementTween != null && movementTween.IsActive())
