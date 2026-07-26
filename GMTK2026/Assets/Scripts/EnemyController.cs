@@ -30,6 +30,10 @@ public class EnemyController : MonoBehaviour
     [Header("Hurt")]
     [SerializeField] private float hurtStunDuration = 0.3f;
 
+    [Header("Particles")]
+    [SerializeField] private ParticleSystem idleParticles;
+    [SerializeField] private ParticleSystem hurtParticles;
+
     private Transform player;
     private bool isAlerted;
     private bool isKnockedBack;
@@ -53,6 +57,11 @@ public class EnemyController : MonoBehaviour
             health.onDamaged.AddListener(OnDamaged);
             health.onDeath.AddListener(OnDeath);
         }
+
+        // Явно выключаем все партиклы на старте, затем включаем idle
+        if (hurtParticles != null) hurtParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        if (idleParticles != null) idleParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        PlayParticle(idleParticles);
     }
 
     private void Update()
@@ -117,11 +126,17 @@ public class EnemyController : MonoBehaviour
         if (animator != null)
             animator.SetFloat(speedParamName, 0f);
 
+        // Выключаем idle на время отбрасывания
+        StopParticle(idleParticles);
+
         yield return new WaitForSeconds(knockbackDuration);
 
         rb.isKinematic = true;
         agent.enabled = true;
         isKnockedBack = false;
+
+        // Включаем idle обратно
+        PlayParticle(idleParticles);
     }
 
     private void OnDamaged(int damage)
@@ -141,11 +156,20 @@ public class EnemyController : MonoBehaviour
         if (animator != null)
             animator.SetTrigger(hurtTriggerName);
 
+        // Переключаемся на hurt-партиклы
+        StopParticle(idleParticles);
+        PlayParticle(hurtParticles);
+
         yield return new WaitForSeconds(hurtStunDuration);
+
+        // Выключаем hurt-партиклы
+        StopParticle(hurtParticles);
 
         if (health != null && health.CurrentHealth > 0 && !isKnockedBack)
         {
             agent.isStopped = false;
+            // Возвращаем idle
+            PlayParticle(idleParticles);
         }
         isHurt = false;
     }
@@ -156,7 +180,27 @@ public class EnemyController : MonoBehaviour
         rb.isKinematic = false;
         enabled = false;
         if (animator != null) animator.SetFloat(speedParamName, 0f);
+
+        // Останавливаем все партиклы
+        StopParticle(idleParticles);
+        StopParticle(hurtParticles);
+
         Destroy(gameObject, 0.5f);
+    }
+
+    private void PlayParticle(ParticleSystem ps)
+    {
+        if (ps != null)
+        {
+            if (ps.isPlaying) ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ps.Play();
+        }
+    }
+
+    private void StopParticle(ParticleSystem ps)
+    {
+        if (ps != null && ps.isPlaying)
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     private void OnDrawGizmosSelected()
