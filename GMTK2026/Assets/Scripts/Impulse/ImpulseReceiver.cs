@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 [RequireComponent(typeof(Rigidbody))]
 [DisallowMultipleComponent]
-public sealed class ImpulseReceiver : MonoBehaviour
+public sealed class ImpulseReceiver : MonoBehaviour, IReflectable
 {
     public enum State
     {
@@ -46,6 +46,9 @@ public sealed class ImpulseReceiver : MonoBehaviour
     public bool IsTemporaryLocked => currentState == State.TemporaryLocked;
     public bool IsMovable => profile != null && profile.IsMovable;
     public bool CanBeExternallyMoved => enabled && IsMovable && !IsTemporaryLocked;
+    public GameObject ReflectionObject => gameObject;
+    public bool CanBeReflected => enabled && IsMoving && currentVelocity.sqrMagnitude > 0f;
+    public Vector3 MovementVelocity => new Vector3(currentVelocity.x, 0f, currentVelocity.y);
 
     private void Awake()
     {
@@ -105,6 +108,23 @@ public sealed class ImpulseReceiver : MonoBehaviour
         externallyControlled = false;
     }
 
+    public void Reflect(Vector3 surfaceNormal)
+    {
+        if (!CanBeReflected) return;
+
+        Vector3 reflected = Vector3.Reflect(MovementVelocity, surfaceNormal);
+        currentVelocity = new Vector2(reflected.x, reflected.z);
+        decelerationStartVelocity = currentState == State.Decelerating
+            ? currentVelocity.normalized * decelerationStartVelocity.magnitude
+            : decelerationStartVelocity;
+        currentSpeed = currentVelocity.magnitude;
+    }
+
+    public void SeparateFromSurface(Vector3 offset)
+    {
+        body.MovePosition(body.position + offset);
+    }
+
     private void FixedUpdate()
     {
         if (externallyControlled) return;
@@ -160,6 +180,13 @@ public sealed class ImpulseReceiver : MonoBehaviour
     {
         if (!IsMoving) return;
 
+        MagicScreenReflector localReflector = GetComponent<MagicScreenReflector>();
+        IReflectable otherReflectable = FindReflectable(collision.collider);
+        if (localReflector != null && localReflector.TryHandleCollision(collision, otherReflectable)) return;
+
+        MagicScreenReflector otherReflector = collision.collider.GetComponentInParent<MagicScreenReflector>();
+        if (otherReflector != null && otherReflector.TryHandleCollision(collision, this)) return;
+
         ImpulseReceiver other = collision.collider.GetComponentInParent<ImpulseReceiver>();
         if (other == null)
         {
@@ -175,6 +202,17 @@ public sealed class ImpulseReceiver : MonoBehaviour
 
         if (collidedReceivers.Contains(other)) return;
         TransferImpulse(other);
+    }
+
+    private static IReflectable FindReflectable(Collider targetCollider)
+    {
+        MonoBehaviour[] behaviours = targetCollider.GetComponentsInParent<MonoBehaviour>();
+        for (int i = 0; i < behaviours.Length; i++)
+        {
+            if (behaviours[i] is IReflectable reflectable) return reflectable;
+        }
+
+        return null;
     }
 
     private void TransferImpulse(ImpulseReceiver other)
