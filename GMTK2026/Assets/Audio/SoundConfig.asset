@@ -23,7 +23,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 81d268bd1d7d3498fb049ef73fe8ec63, type: 3}
     - {fileID: 8300000, guid: 3f0d3c35e5fc142e1a7580e0be35c567, type: 3}
     - {fileID: 8300000, guid: 449fa84f601f44e1fa83919f7b8ed5ab, type: 3}
-    volume: 0.178
+    volume: 0.401
     pitchRange: {x: 1, y: 2}
     spatial3D: 0
     cooldown: 0
@@ -302,8 +302,9 @@ MonoBehaviour:
     cooldown: 0
     maxVoices: 2
   - id: 38
-    clips: []
-    volume: 1
+    clips:
+    - {fileID: 8300000, guid: a0010a1a0c474473b81729eb770c485f, type: 3}
+    volume: 0.914
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 0
     cooldown: 0
@@ -337,7 +338,8 @@ MonoBehaviour:
     cooldown: 0.08
     maxVoices: 4
   - id: 43
-    clips: []
+    clips:
+    - {fileID: 8300000, guid: b9eff218e132a4e76be78840eca96fb2, type: 3}
     volume: 1
     pitchRange: {x: 0.95, y: 1.05}
     spatial3D: 1
