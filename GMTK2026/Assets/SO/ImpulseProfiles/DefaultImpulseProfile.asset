@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: DefaultImpulseProfile
   m_EditorClassIdentifier: Assembly-CSharp::ImpulseProfile
   isMovable: 1
-  speedPerForce: 1
-  flightTime: 0.35
-  decelerationTime: 0.1
-  stopLockDuration: 0.15
-  maxSpeed: 20
+  speedPerForce: 4
+  flightTime: 0.7
+  decelerationTime: 0.2
+  stopLockDuration: 0.5
+  maxSpeed: 40
   impulseTransferMultiplier: 0.75
-  collisionSpeedMultiplier: 0.8
+  collisionSpeedMultiplier: 0.847

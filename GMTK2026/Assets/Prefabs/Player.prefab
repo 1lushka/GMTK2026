@@ -123,15 +123,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c75819195474f4091877120ae9f7aca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damagePerSecond: 10
-  liftHeight: 1.5
+  damagePerSecond: 1
+  liftHeight: 0.5
   liftDuration: 0.15
   returnDuration: 0.2
   liftEase: 6
   returnEase: 5
   impulseDistance: 4
-  impulseDuration: 0.25
-  impulseEase: 6
 --- !u!1 &2766265936990785622
 GameObject:
   m_ObjectHideFlags: 0
@@ -337,7 +335,7 @@ MonoBehaviour:
   comboBool: Combo
   useAnimator: 1
   rotationSpeed: 150
-  pushForce: 0.3
+  pushForce: 1
   punchCollider: {fileID: 2696159624825845082}
 --- !u!114 &7293847561029384756
 MonoBehaviour:
@@ -349,22 +347,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae813f1ba8134928a2bebc0347811b03, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   abilityDefinition: {fileID: 11400000, guid: bf1348088f844daa9946eec53b67b382, type: 2}
   activationKey: 101
   cooldown: 0.5
   glovePrefab: {fileID: 11400000, guid: c21756566da9440ea1d47a01e2f284a2, type: 3}
   gloveProjectileSpeed: 15
-  gloveMaxDistance: 12
+  gloveMaxDistance: 5
   gloveSpawnDistance: 0.6
   collisionRadius: 0.2
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  orbitLinearSpeed: 6
+  orbitLinearSpeed: 9
   collisionImpulseForce: 8
-  releaseImpulseForce: 10
+  releaseImpulseForce: 3
   playerCollisionRadius: 0.45
   groundCheckDistance: 2
   linkOrigin: {fileID: 0}

@@ -147,7 +147,11 @@ namespace ForgettingBoxer.Knockout
             PauseWorld();
             onKnockoutStarted?.Invoke();
 
-            if (timerText != null) timerText.gameObject.SetActive(true);
+            if (timerText != null)
+            {
+                timerText.text = Mathf.CeilToInt(Mathf.Max(0f, countdownValue)).ToString();
+                timerText.gameObject.SetActive(true);
+            }
             if (statusText != null) statusText.text = "KNOCKOUT! CLICK ALL STARS";
             yield return ScatterStars();
 
