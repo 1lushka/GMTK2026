@@ -6,10 +6,10 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-
     [SerializeField] private string sacrificeSceneName = "SacrificeScene";
 
-    private HashSet<string> activeAbilities = new HashSet<string>();
+    private HashSet<string> activeAbilityIds = new HashSet<string>();
+    private Dictionary<string, AbilityDefinition> abilityDefs = new Dictionary<string, AbilityDefinition>();
     private string currentLevelName;
 
     private void Awake()
@@ -23,16 +23,28 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void InitializeIfEmpty(IEnumerable<string> abilityIds)
+    public void InitializeAbilities(IEnumerable<AbilityDefinition> abilities)
     {
-        if (activeAbilities.Count == 0)
+        activeAbilityIds.Clear();
+        abilityDefs.Clear();
+        foreach (var def in abilities)
         {
-            activeAbilities = new HashSet<string>(abilityIds);
+            if (def.enabledByDefault)
+            {
+                activeAbilityIds.Add(def.abilityId);
+                abilityDefs[def.abilityId] = def;
+            }
         }
     }
 
-    public IEnumerable<string> GetActiveAbilities() => activeAbilities;
-    public void RemoveAbility(string abilityId) => activeAbilities.Remove(abilityId);
+    public IEnumerable<string> GetActiveAbilityIds() => activeAbilityIds;
+    public AbilityDefinition GetAbilityDefinition(string abilityId)
+    {
+        abilityDefs.TryGetValue(abilityId, out var def);
+        return def;
+    }
+
+    public void RemoveAbility(string abilityId) => activeAbilityIds.Remove(abilityId);
 
     public void OnLevelComplete()
     {

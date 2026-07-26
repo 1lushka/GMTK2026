@@ -23849,6 +23849,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 139733014192440094, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 280947217703085903, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
+      propertyPath: m_Radius
+      value: 0.2733057
+      objectReference: {fileID: 0}
+    - target: {fileID: 280947217703085903, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
+      propertyPath: m_Center.z
+      value: 0.043852158
+      objectReference: {fileID: 0}
+    - target: {fileID: 2855300804125390576, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 264
+      objectReference: {fileID: 0}
     - target: {fileID: 3031788469969946939, guid: f699aa8938f1d454cbbd12fcca2950a8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -33717,7 +33733,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0fd0c898036ee46acd357040c81485, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sacrificeSceneName: SelectScene
+  sacrificeSceneName: AbillitySelection
 --- !u!4 &999420608
 Transform:
   m_ObjectHideFlags: 0
