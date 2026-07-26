@@ -10,6 +10,7 @@ public sealed class ImpulseProfile : ScriptableObject
     [SerializeField, Min(0f)] private float stopLockDuration = 0.15f;
     [SerializeField, Min(0f)] private float maxSpeed = 20f;
     [SerializeField, Min(0f)] private float impulseTransferMultiplier = 0.75f;
+    [SerializeField, Range(0f, 1f)] private float collisionSpeedMultiplier = 0.8f;
 
     public bool IsMovable => isMovable;
     public float SpeedPerForce => speedPerForce;
@@ -18,4 +19,5 @@ public sealed class ImpulseProfile : ScriptableObject
     public float StopLockDuration => stopLockDuration;
     public float MaxSpeed => maxSpeed;
     public float ImpulseTransferMultiplier => impulseTransferMultiplier;
+    public float CollisionSpeedMultiplier => collisionSpeedMultiplier;
 }

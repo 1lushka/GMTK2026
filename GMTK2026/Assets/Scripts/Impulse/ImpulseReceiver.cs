@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -32,6 +33,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private Vector2 decelerationStartVelocity;
     private float decelerationElapsed;
     private bool externallyControlled;
+    private readonly HashSet<ImpulseReceiver> collidedReceivers = new HashSet<ImpulseReceiver>();
 
     public event Action<ImpulseInfo> ImpulseReceived;
 
@@ -93,6 +95,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
         currentSpeed = 0f;
         remainingFlightTime = 0f;
         currentState = State.Idle;
+        collidedReceivers.Clear();
         body.linearVelocity = Vector3.zero;
         return true;
     }
@@ -170,12 +173,15 @@ public sealed class ImpulseReceiver : MonoBehaviour
             return;
         }
 
-        if (other.IsMoving && GetInstanceID() > other.GetInstanceID()) return;
+        if (collidedReceivers.Contains(other)) return;
         TransferImpulse(other);
     }
 
     private void TransferImpulse(ImpulseReceiver other)
     {
+        collidedReceivers.Add(other);
+        other.collidedReceivers.Add(this);
+
         Vector3 offset = other.transform.position - transform.position;
         Vector2 direction = new Vector2(offset.x, offset.z);
         if (direction.sqrMagnitude <= 0.0001f) direction = currentVelocity;
@@ -184,9 +190,9 @@ public sealed class ImpulseReceiver : MonoBehaviour
         float transferForce = currentSpeed * profile.ImpulseTransferMultiplier;
         other.ApplyImpulse(direction, transferForce, gameObject);
 
-        currentVelocity = -direction * Mathf.Min(currentSpeed * 0.35f, profile.MaxSpeed);
-        remainingFlightTime = profile.FlightTime;
-        currentState = State.Flying;
+        currentVelocity *= profile.CollisionSpeedMultiplier;
+        decelerationStartVelocity *= profile.CollisionSpeedMultiplier;
+        currentSpeed = currentVelocity.magnitude;
     }
 
     private void StopAndLock()
@@ -203,6 +209,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     {
         remainingLockTime = 0f;
         currentState = State.Idle;
+        collidedReceivers.Clear();
     }
 
     private void OnDrawGizmosSelected()

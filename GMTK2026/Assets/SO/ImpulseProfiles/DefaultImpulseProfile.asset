@@ -19,3 +19,4 @@ MonoBehaviour:
   stopLockDuration: 0.15
   maxSpeed: 20
   impulseTransferMultiplier: 0.75
+  collisionSpeedMultiplier: 0.8
