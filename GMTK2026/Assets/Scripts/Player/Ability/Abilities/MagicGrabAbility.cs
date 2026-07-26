@@ -125,7 +125,6 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorTransform = receiver.transform;
         orbitOffset = targetBody.position - rb.position;
         orbitOffset.y = 0f;
-        orbitDirection = -1f;
         controller.ActivateRotation(false);
         state = GrabState.TargetOrbitingPlayer;
     }
@@ -136,7 +135,6 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorLocalPoint = anchor.InverseTransformPoint(worldPoint);
         orbitOffset = rb.position - worldPoint;
         orbitOffset.y = 0f;
-        orbitDirection = -1f;
         playerOrbitHeight = rb.position.y;
         controller.enableMovement = false;
         controller.ActivateRotation(false);
@@ -153,11 +151,13 @@ public sealed class MagicGrabAbility : ActiveAbility
             return;
         }
 
-        Vector3 desiredOffset = RotateClockwise(orbitOffset);
+        Vector3 desiredOffset = RotateOrbit(orbitOffset);
         Vector3 movement = rb.position + desiredOffset - targetBody.position;
         if (HandleOrbitCollisions(targetBody.position, movement, targetReceiver))
         {
-            SwitchToPlayerOrbit();
+            orbitDirection *= -1f;
+            lastMotionDirection = Vector3.zero;
+            FaceAnchor(targetBody.position);
             return;
         }
 
@@ -171,7 +171,7 @@ public sealed class MagicGrabAbility : ActiveAbility
     {
         Vector3 anchorPosition = GetAnchorPosition();
         rb.linearVelocity = Vector3.zero;
-        Vector3 desiredOffset = RotateClockwise(orbitOffset);
+        Vector3 desiredOffset = RotateOrbit(orbitOffset);
         Vector3 desiredPosition = anchorPosition + desiredOffset;
         desiredPosition.y = playerOrbitHeight;
         Vector3 movement = desiredPosition - rb.position;
@@ -220,20 +220,6 @@ public sealed class MagicGrabAbility : ActiveAbility
         nextCollisionImpulseTime = Time.time + 0.15f;
     }
 
-    private void SwitchToPlayerOrbit()
-    {
-        anchorTransform = targetReceiver.transform;
-        anchorLocalPoint = anchorTransform.InverseTransformPoint(targetBody.position);
-        orbitOffset = rb.position - targetBody.position;
-        orbitOffset.y = 0f;
-        playerOrbitHeight = rb.position.y;
-        controller.enableMovement = false;
-        controller.ActivateRotation(false);
-        controller.SetVelocity(Vector3.zero);
-        rb.linearVelocity = Vector3.zero;
-        state = GrabState.PlayerOrbitingAnchor;
-    }
-
     public void CancelGrab(bool applyInertia)
     {
         GrabState previousState = state;
@@ -264,7 +250,7 @@ public sealed class MagicGrabAbility : ActiveAbility
         lastImpulsedReceiver = null;
     }
 
-    private Vector3 RotateClockwise(Vector3 offset)
+    private Vector3 RotateOrbit(Vector3 offset)
     {
         float angle = rotationSpeed * orbitDirection * Time.fixedDeltaTime;
         return Quaternion.AngleAxis(angle, Vector3.up) * offset;
