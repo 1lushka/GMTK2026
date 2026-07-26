@@ -159,6 +159,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (!IsMoving) return;
+        if (IsLandingCollision(collision)) return;
 
         ImpulseReceiver other = collision.collider.GetComponentInParent<ImpulseReceiver>();
         if (other == null)
@@ -175,6 +176,17 @@ public sealed class ImpulseReceiver : MonoBehaviour
 
         if (collidedReceivers.Contains(other)) return;
         TransferImpulse(other);
+    }
+
+    private static bool IsLandingCollision(Collision collision)
+    {
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            if (collision.GetContact(i).normal.y > 0.5f)
+                return true;
+        }
+
+        return false;
     }
 
     private void TransferImpulse(ImpulseReceiver other)

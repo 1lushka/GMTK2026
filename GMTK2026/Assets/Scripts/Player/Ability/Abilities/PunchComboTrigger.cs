@@ -16,6 +16,10 @@ public class PunchComboTrigger : MonoBehaviour
     [SerializeField] private float liftDuration = 0.15f;
     [Min(0f)]
     [SerializeField] private float returnDuration = 0.2f;
+    [Min(0f)]
+    [SerializeField] private float hoverAmplitude = 0.15f;
+    [Min(0.01f)]
+    [SerializeField] private float hoverPeriod = 0.6f;
     [SerializeField] private Ease liftEase = Ease.OutQuad;
     [SerializeField] private Ease returnEase = Ease.InQuad;
 
@@ -30,6 +34,7 @@ public class PunchComboTrigger : MonoBehaviour
         public HealthComponent Health;
         public PunchComboTargetMotion Motion;
         public ImpulseReceiver ImpulseReceiver;
+        public bool HasExternalControl;
         public float AccumulatedDamage;
     }
 
@@ -65,6 +70,9 @@ public class PunchComboTrigger : MonoBehaviour
             target.Health.SetStunned(false);
             if (target.ImpulseReceiver != null)
             {
+                target.Motion.ReleaseForImpulse();
+                if (target.HasExternalControl)
+                    target.ImpulseReceiver.EndExternalControl();
                 Vector2 impulseDirection = new Vector2(direction.x, direction.z);
                 target.ImpulseReceiver.ApplyImpulse(impulseDirection, impulseDistance, transform.root.gameObject);
             }
@@ -124,9 +132,11 @@ public class PunchComboTrigger : MonoBehaviour
                 Motion = motion,
                 ImpulseReceiver = health.GetComponent<ImpulseReceiver>()
             };
+            if (target.ImpulseReceiver != null)
+                target.HasExternalControl = target.ImpulseReceiver.BeginExternalControl();
             targets.Add(health, target);
             health.SetStunned(true);
-            motion.Lift(liftHeight, liftDuration, liftEase);
+            motion.Lift(liftHeight, liftDuration, liftEase, hoverAmplitude, hoverPeriod);
         }
 
         target.Colliders.Add(other);
@@ -148,6 +158,8 @@ public class PunchComboTrigger : MonoBehaviour
     {
         if (target.Health != null)
             target.Health.SetStunned(false);
+        if (target.HasExternalControl && target.ImpulseReceiver != null)
+            target.ImpulseReceiver.EndExternalControl();
         if (target.Motion != null)
             target.Motion.ReturnToGround(returnDuration, returnEase);
     }
