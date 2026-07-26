@@ -21,14 +21,19 @@ public class EnemyController : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private string speedParamName = "Speed";
     [SerializeField] private string attackTriggerName = "Attack";
+    [SerializeField] private string hurtTriggerName = "Hurt";
     [SerializeField] private float animationMoveThreshold = 0.1f;
 
     [Header("Knockback")]
     [SerializeField] private float knockbackDuration = 0.4f;
 
+    [Header("Hurt")]
+    [SerializeField] private float hurtStunDuration = 0.3f;
+
     private Transform player;
     private bool isAlerted;
     private bool isKnockedBack;
+    private bool isHurt;
     private float lastAttackTime = -Mathf.Infinity;
 
     private void Awake()
@@ -52,7 +57,7 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        if (isKnockedBack || (health != null && health.CurrentHealth <= 0)) return;
+        if (isKnockedBack || isHurt || (health != null && health.CurrentHealth <= 0)) return;
 
         UpdateAnimation();
 
@@ -67,7 +72,6 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // Вызывается из триггера или при получении урона
     public void Alert()
     {
         if (!isAlerted)
@@ -123,6 +127,27 @@ public class EnemyController : MonoBehaviour
     private void OnDamaged(int damage)
     {
         Alert();
+        if (!isKnockedBack && !isHurt)
+        {
+            StartCoroutine(HurtRoutine());
+        }
+    }
+
+    private IEnumerator HurtRoutine()
+    {
+        isHurt = true;
+        agent.isStopped = true;
+
+        if (animator != null)
+            animator.SetTrigger(hurtTriggerName);
+
+        yield return new WaitForSeconds(hurtStunDuration);
+
+        if (health != null && health.CurrentHealth > 0 && !isKnockedBack)
+        {
+            agent.isStopped = false;
+        }
+        isHurt = false;
     }
 
     private void OnDeath()
