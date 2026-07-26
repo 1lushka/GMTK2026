@@ -14,3 +14,5 @@ The receiver moves at constant velocity during `FlightTime`, decelerates to zero
 Receiver collisions transfer an impulse away from the source object's centre. A wall, an immovable receiver, or a temporarily locked receiver stops and locks the flying object. This prevents repeated transfer loops when objects accumulate against a wall.
 
 After transferring an impulse, the incoming object keeps its original direction and multiplies its speed by `CollisionSpeedMultiplier`. Each receiver pair reacts only once during the current movement cycle, so the same objects cannot repeatedly transfer impulses to each other.
+
+Assign the shared impact prefab in `Assets/SO/ImpulseImpactEffectConfig.asset`. Every accepted impulse spawns this effect at the collision point. `Effect Lifetime` controls automatic cleanup, and `Align With Impact Direction` rotates the effect along the impulse direction.

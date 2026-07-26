@@ -30,6 +30,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     [SerializeField] private bool drawVelocityGizmo = true;
 
     private Rigidbody body;
+    private Collider bodyCollider;
     private DashAbility dashAbility;
     private Vector2 decelerationStartVelocity;
     private float decelerationElapsed;
@@ -57,6 +58,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
+        CacheBodyCollider();
         dashAbility = GetComponentInParent<DashAbility>();
         body.linearVelocity = Vector3.zero;
         currentState = State.Idle;
@@ -77,15 +79,37 @@ public sealed class ImpulseReceiver : MonoBehaviour
 
     public void ApplyImpulse(Vector2 direction, float force, GameObject source = null)
     {
-        ApplyImpulseInternal(direction, force, source, false);
+        ApplyImpulseInternal(direction, force, source, false, null);
+    }
+
+    private void CacheBodyCollider()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i].isTrigger) continue;
+            bodyCollider = colliders[i];
+            return;
+        }
     }
 
     public void ForceApplyImpulse(Vector2 direction, float force, GameObject source = null)
     {
-        ApplyImpulseInternal(direction, force, source, true);
+        ApplyImpulseInternal(direction, force, source, true, null);
     }
 
-    private void ApplyImpulseInternal(Vector2 direction, float force, GameObject source, bool ignoreLock)
+    public void ApplyImpulseAt(Vector2 direction, float force, Vector3 impactPoint, GameObject source = null)
+    {
+        ApplyImpulseInternal(direction, force, source, false, impactPoint);
+    }
+
+    public void ForceApplyImpulseAt(Vector2 direction, float force, Vector3 impactPoint, GameObject source = null)
+    {
+        ApplyImpulseInternal(direction, force, source, true, impactPoint);
+    }
+
+    private void ApplyImpulseInternal(Vector2 direction, float force, GameObject source, bool ignoreLock,
+        Vector3? impactPoint)
     {
         if (dashAbility != null && dashAbility.IsDashing) return;
 
@@ -115,6 +139,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
         currentSpeed = currentVelocity.magnitude;
         remainingFlightTime = profile.FlightTime;
         currentState = State.Flying;
+        SpawnImpactEffect(direction, source, impactPoint);
         ImpulseApplied?.Invoke(info);
     }
 
@@ -222,7 +247,10 @@ public sealed class ImpulseReceiver : MonoBehaviour
         }
 
         if (collidedReceivers.Contains(other)) return;
-        TransferImpulse(other);
+        Vector3 impactPoint = collision.contactCount > 0
+            ? collision.GetContact(0).point
+            : body.position;
+        TransferImpulse(other, impactPoint);
     }
 
     private static bool IsLandingCollision(Collision collision)
@@ -236,7 +264,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
         return false;
     }
 
-    private void TransferImpulse(ImpulseReceiver other)
+    private void TransferImpulse(ImpulseReceiver other, Vector3 impactPoint)
     {
         collidedReceivers.Add(other);
         other.collidedReceivers.Add(this);
@@ -247,11 +275,22 @@ public sealed class ImpulseReceiver : MonoBehaviour
         direction.Normalize();
 
         float transferForce = currentSpeed * profile.ImpulseTransferMultiplier;
-        other.ApplyImpulse(direction, transferForce, gameObject);
+        other.ApplyImpulseAt(direction, transferForce, impactPoint, gameObject);
 
         currentVelocity *= profile.CollisionSpeedMultiplier;
         decelerationStartVelocity *= profile.CollisionSpeedMultiplier;
         currentSpeed = currentVelocity.magnitude;
+    }
+
+    private void SpawnImpactEffect(Vector2 direction, GameObject source, Vector3? impactPoint)
+    {
+        if (profile.ImpactEffect == null) return;
+
+        Vector3 position = impactPoint ?? body.position;
+        if (!impactPoint.HasValue && source != null && bodyCollider != null)
+            position = bodyCollider.ClosestPoint(source.transform.position);
+
+        profile.ImpactEffect.Spawn(position, direction);
     }
 
     private void StopAndLock()

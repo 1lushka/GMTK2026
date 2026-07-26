@@ -162,7 +162,7 @@ public class TrainingStand : MonoBehaviour
         Vector3 radius = contactPoint - transform.position;
         radius.y = 0f;
         Vector3 tangent = Vector3.Cross(Vector3.up * spinDirection, radius.normalized);
-        target.ForceApplyImpulse(new Vector2(tangent.x, tangent.z), pushForce, gameObject);
+        target.ForceApplyImpulseAt(new Vector2(tangent.x, tangent.z), pushForce, contactPoint, gameObject);
     }
 
     private void OnDeath()

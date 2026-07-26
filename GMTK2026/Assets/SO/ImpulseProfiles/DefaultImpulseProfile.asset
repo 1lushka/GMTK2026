@@ -20,6 +20,7 @@ MonoBehaviour:
   maxSpeed: 40
   impulseTransferMultiplier: 0.75
   collisionSpeedMultiplier: 0.847
+  impactEffect: {fileID: 11400000, guid: adff91d3d448418a927a9d15eec01681, type: 2}
   flightHeight: 0.2
   liftDuration: 0.08
   landingDuration: 0.12
