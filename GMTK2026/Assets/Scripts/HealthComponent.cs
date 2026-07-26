@@ -6,6 +6,7 @@ public class HealthComponent : MonoBehaviour
     [Header("Health")]
     [SerializeField] private int maxHealth = 3;
     private int currentHealth;
+    private bool isStunned;
 
     [System.Serializable]
     public class DamagedEvent : UnityEvent<int> { }  
@@ -33,4 +34,10 @@ public class HealthComponent : MonoBehaviour
 
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
+    public bool IsStunned => isStunned;
+
+    public void SetStunned(bool stunned)
+    {
+        isStunned = stunned;
+    }
 }

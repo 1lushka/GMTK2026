@@ -13,9 +13,11 @@ public class PunchComboAbility : ActiveAbility
     [SerializeField] private float pushForce = 10f;
     [SerializeField] private Transform punchCollider;       
 
+    private PunchComboTrigger punchTrigger;
     [Header("Damage")]
     [SerializeField] private int damage = 1;
     [SerializeField] private float damageInterval = 0.5f;   
+
 
     private bool isPunching = false;
     private Collider punchColliderComponent;
@@ -30,6 +32,7 @@ public class PunchComboAbility : ActiveAbility
         animator.SetBool(comboBool, true);
         isPunching = true;
         controller.ActivateRotation(false);
+        punchTrigger.BeginAttack();
         punchCollider.gameObject.SetActive(true);
 
         Vector3 direction = LookAtMouse();
@@ -41,15 +44,32 @@ public class PunchComboAbility : ActiveAbility
 
     protected void Deactivate()
     {
+        if (!isPunching) return;
+
         animator.SetBool(comboBool, false);
         isPunching = false;
         controller.ActivateRotation(true);
+        Vector3 attackDirection = punchCollider.position - transform.position;
+        attackDirection.y = 0f;
+        punchTrigger.FinalHit(attackDirection);
         punchCollider.gameObject.SetActive(false);
     }
 
     protected override void Start()
     {
         base.Start();
+
+        if (punchCollider == null)
+        {
+            Debug.LogError("PunchComboAbility: punchCollider is not assigned!");
+            enabled = false;
+            return;
+        }
+
+        punchTrigger = punchCollider.GetComponent<PunchComboTrigger>();
+        if (punchTrigger == null)
+            punchTrigger = punchCollider.gameObject.AddComponent<PunchComboTrigger>();
+        punchCollider.gameObject.SetActive(false);
 
         if (useAnimator && controller != null)
         {
@@ -71,7 +91,7 @@ public class PunchComboAbility : ActiveAbility
             cooldownTimer -= Time.deltaTime;
         }
 
-        // Ввод
+        // пїЅпїЅпїЅпїЅ
         if (Input.GetKeyDown(activationKey))
             Activate();
         if (Input.GetKeyUp(activationKey))
@@ -79,14 +99,14 @@ public class PunchComboAbility : ActiveAbility
 
         if (isPunching)
         {
-            // Поворот к мыши и движение вперёд
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             Vector3 direction = LookAtMouse();
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             Quaternion smoothRotation = Quaternion.RotateTowards(rb.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
             rb.MoveRotation(smoothRotation);
             ApplyPush(-direction);
 
-            // Нанесение урона по таймеру
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (Time.time >= lastDamageTime + damageInterval)
             {
                 DealDamageToAllInZone();
@@ -96,7 +116,7 @@ public class PunchComboAbility : ActiveAbility
     }
 
     /// <summary>
-    /// Собирает все объекты в зоне punchCollider и наносит им урон.
+    /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ punchCollider пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ.
     /// </summary>
     private void DealDamageToAllInZone()
     {
@@ -124,8 +144,8 @@ public class PunchComboAbility : ActiveAbility
             float height = capsule.height * capsule.transform.lossyScale.y;
             float radius = capsule.radius * Mathf.Max(capsule.transform.lossyScale.x, capsule.transform.lossyScale.z);
 
-            // Определяем направление капсулы (0=X, 1=Y, 2=Z)
-            Vector3 direction = Vector3.up; // по умолчанию Y
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (0=X, 1=Y, 2=Z)
+            Vector3 direction = Vector3.up; // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Y
             if (capsule.direction == 0) direction = capsule.transform.right;
             else if (capsule.direction == 1) direction = capsule.transform.up;
             else if (capsule.direction == 2) direction = capsule.transform.forward;
@@ -190,5 +210,11 @@ public class PunchComboAbility : ActiveAbility
     protected override bool CanActivate()
     {
         return cooldownTimer <= 0;
+    }
+
+    private void OnDisable()
+    {
+        if (isPunching)
+            Deactivate();
     }
 }

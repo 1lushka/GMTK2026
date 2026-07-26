@@ -1,0 +1,464 @@
+using UnityEngine;
+using ForgettingBoxer.Knockout;
+
+public sealed class MagicGrabAbility : ActiveAbility
+{
+    private enum GrabState
+    {
+        Idle,
+        ProjectileFlying,
+        TargetOrbitingPlayer,
+        PlayerOrbitingAnchor
+    }
+
+    private enum OrbitCollisionResult
+    {
+        None,
+        MovableHit,
+        SolidHit
+    }
+
+    [Header("Glove Projectile")]
+    [SerializeField] private MagicGrabProjectile glovePrefab;
+    [SerializeField] private float gloveProjectileSpeed = 15f;
+    [SerializeField] private float gloveMaxDistance = 12f;
+    [SerializeField] private float gloveSpawnDistance = 0.6f;
+    [SerializeField] private float collisionRadius = 0.2f;
+    [SerializeField] private LayerMask hitMask = ~0;
+
+    [Header("Orbit")]
+    [SerializeField, Min(0f)] private float orbitLinearSpeed = 6f;
+    [SerializeField] private float releaseImpulseForce = 10f;
+    [SerializeField] private float playerCollisionRadius = 0.45f;
+    [SerializeField] private float groundCheckDistance = 2f;
+
+    [Header("Optional Visual Hook")]
+    [SerializeField] private Transform linkOrigin;
+
+    private readonly RaycastHit[] orbitHits = new RaycastHit[12];
+    private readonly RaycastHit[] groundHits = new RaycastHit[8];
+
+    private GrabState state;
+    private MagicGrabProjectile projectile;
+    private ImpulseReceiver targetReceiver;
+    private Rigidbody targetBody;
+    private Transform anchorTransform;
+    private Vector3 anchorLocalPoint;
+    private Vector3 orbitOffset;
+    private Vector3 lastMotionDirection;
+    private ImpulseReceiver lastImpulsedReceiver;
+    private float nextCollisionImpulseTime;
+    private float orbitDirection = -1f;
+    private float playerOrbitHeight;
+    private HealthComponent health;
+    private KnockoutSystem knockoutSystem;
+    private Camera mainCamera;
+    private Collider playerCollider;
+    private Collider lastOrbitBlocker;
+    private Vector3 targetCollisionOffset;
+
+    public bool IsActive => state != GrabState.Idle;
+    public Transform LinkOrigin => linkOrigin != null ? linkOrigin : transform;
+    public Vector3 LinkTarget => GetAnchorPosition();
+
+    protected override void Start()
+    {
+        base.Start();
+        mainCamera = Camera.main;
+        health = GetComponent<HealthComponent>();
+        playerCollider = GetComponentInChildren<Collider>();
+        CachePlayerCollisionRadius();
+        knockoutSystem = KnockoutSystem.Instance;
+        SubscribeToInterruptions();
+    }
+
+    private void OnEnable()
+    {
+        if (abilityManager != null)
+            SubscribeToInterruptions();
+    }
+
+    protected override void Update()
+    {
+        if (state != GrabState.Idle && Input.GetKeyDown(activationKey))
+        {
+            CancelGrab(true);
+            return;
+        }
+
+        base.Update();
+
+        if (state != GrabState.Idle && anchorTransform == null && state != GrabState.ProjectileFlying)
+            CancelGrab(false);
+    }
+
+    private void FixedUpdate()
+    {
+        if (state == GrabState.TargetOrbitingPlayer)
+            OrbitTargetAroundPlayer();
+        else if (state == GrabState.PlayerOrbitingAnchor)
+            OrbitPlayerAroundAnchor();
+    }
+
+    protected override void Activate()
+    {
+        if (glovePrefab == null) return;
+
+        Vector3 direction = GetAimDirection();
+        Vector3 spawnPosition = transform.position + direction * gloveSpawnDistance;
+        projectile = Instantiate(glovePrefab, spawnPosition, Quaternion.LookRotation(direction));
+        projectile.Initialize(gameObject, direction, gloveProjectileSpeed, gloveMaxDistance,
+            collisionRadius, hitMask, OnProjectileHit, OnProjectileMissed);
+        state = GrabState.ProjectileFlying;
+    }
+
+    private void OnProjectileHit(RaycastHit hit)
+    {
+        projectile = null;
+        ImpulseReceiver receiver = hit.collider.GetComponentInParent<ImpulseReceiver>();
+
+        if (receiver != null && receiver.BeginExternalControl())
+        {
+            BeginTargetOrbit(receiver);
+            return;
+        }
+
+        BeginPlayerOrbit(hit.collider.transform, hit.point);
+    }
+
+    private void BeginTargetOrbit(ImpulseReceiver receiver)
+    {
+        targetReceiver = receiver;
+        targetBody = receiver.GetComponent<Rigidbody>();
+        Collider targetCollider = receiver.GetComponent<Collider>();
+        targetCollisionOffset = targetCollider != null
+            ? targetCollider.bounds.center - targetBody.position
+            : Vector3.zero;
+        anchorTransform = receiver.transform;
+        orbitOffset = targetBody.position - rb.position;
+        orbitOffset.y = 0f;
+        controller.ActivateRotation(false);
+        state = GrabState.TargetOrbitingPlayer;
+    }
+
+    private void BeginPlayerOrbit(Transform anchor, Vector3 worldPoint)
+    {
+        anchorTransform = anchor;
+        anchorLocalPoint = anchor.InverseTransformPoint(worldPoint);
+        orbitOffset = rb.position - worldPoint;
+        orbitOffset.y = 0f;
+        playerOrbitHeight = rb.position.y;
+        controller.enableMovement = false;
+        controller.ActivateRotation(false);
+        controller.SetVelocity(Vector3.zero);
+        rb.linearVelocity = Vector3.zero;
+        state = GrabState.PlayerOrbitingAnchor;
+    }
+
+    private void OrbitTargetAroundPlayer()
+    {
+        if (targetBody == null)
+        {
+            CancelGrab(false);
+            return;
+        }
+
+        Vector3 desiredOffset = RotateOrbit(orbitOffset);
+        Vector3 movement = rb.position + desiredOffset - targetBody.position;
+        Vector3 collisionOrigin = targetBody.position + targetCollisionOffset;
+        OrbitCollisionResult collision = HandleOrbitCollisions(collisionOrigin, movement, targetReceiver);
+        if (collision == OrbitCollisionResult.SolidHit)
+        {
+            orbitDirection *= -1f;
+            RememberMotion(GetTargetOrbitMovement());
+            FaceAnchor(targetBody.position);
+            return;
+        }
+
+        if (collision == OrbitCollisionResult.MovableHit)
+        {
+            RememberMotion(movement);
+            FaceAnchor(targetBody.position);
+            return;
+        }
+
+        targetBody.MovePosition(targetBody.position + movement);
+        lastOrbitBlocker = null;
+        orbitOffset = desiredOffset;
+        RememberMotion(movement);
+        FaceAnchor(targetBody.position + movement);
+    }
+
+    private void OrbitPlayerAroundAnchor()
+    {
+        Vector3 anchorPosition = GetAnchorPosition();
+        rb.linearVelocity = Vector3.zero;
+        Vector3 desiredOffset = RotateOrbit(orbitOffset);
+        Vector3 desiredPosition = anchorPosition + desiredOffset;
+        desiredPosition.y = playerOrbitHeight;
+        Vector3 movement = desiredPosition - rb.position;
+
+        if (!CanMovePlayer(movement, desiredPosition))
+        {
+            orbitDirection *= -1f;
+            RememberMotion(GetPlayerOrbitMovement(anchorPosition));
+            FaceAnchor(anchorPosition);
+            return;
+        }
+
+        rb.MovePosition(rb.position + movement);
+        lastOrbitBlocker = null;
+        orbitOffset = desiredOffset;
+        RememberMotion(movement);
+        FaceAnchor(anchorPosition);
+    }
+
+    private OrbitCollisionResult HandleOrbitCollisions(
+        Vector3 origin, Vector3 movement, ImpulseReceiver movingReceiver)
+    {
+        float distance = movement.magnitude;
+        if (distance <= 0.0001f) return OrbitCollisionResult.None;
+
+        int count = Physics.SphereCastNonAlloc(origin, collisionRadius, movement / distance,
+            orbitHits, distance, hitMask, QueryTriggerInteraction.Ignore);
+        bool launchedObject = false;
+        for (int i = 0; i < count; i++)
+        {
+            Collider hitCollider = orbitHits[i].collider;
+            ImpulseReceiver other = hitCollider.GetComponentInParent<ImpulseReceiver>();
+            if (hitCollider.transform.root == transform.root || other == movingReceiver) continue;
+
+            if (other == null || !other.CanBeExternallyMoved)
+            {
+                if (hitCollider == lastOrbitBlocker) continue;
+                lastOrbitBlocker = hitCollider;
+                return OrbitCollisionResult.SolidHit;
+            }
+            launchedObject |= ApplyCollisionImpulse(other, movement);
+        }
+
+        return launchedObject ? OrbitCollisionResult.MovableHit : OrbitCollisionResult.None;
+    }
+
+    private bool ApplyCollisionImpulse(ImpulseReceiver receiver, Vector3 movement)
+    {
+        if (receiver == lastImpulsedReceiver && Time.time < nextCollisionImpulseTime) return false;
+
+        Vector2 direction = new Vector2(movement.x, movement.z).normalized;
+        receiver.ApplyImpulse(direction, releaseImpulseForce, gameObject);
+        lastImpulsedReceiver = receiver;
+        nextCollisionImpulseTime = Time.time + 0.15f;
+        return true;
+    }
+
+    public void CancelGrab(bool applyInertia)
+    {
+        GrabState previousState = state;
+        Vector3 releaseDirection = GetReleaseDirection(previousState);
+        state = GrabState.Idle;
+
+        if (projectile != null) Destroy(projectile.gameObject);
+        projectile = null;
+
+        if (targetReceiver != null)
+        {
+            targetReceiver.EndExternalControl();
+            if (applyInertia && previousState == GrabState.TargetOrbitingPlayer)
+                targetReceiver.ApplyImpulse(ToVector2(releaseDirection), releaseImpulseForce, gameObject);
+        }
+
+        if (controller != null)
+        {
+            controller.enableMovement = true;
+            controller.ActivateRotation(true);
+            if (applyInertia && previousState == GrabState.PlayerOrbitingAnchor)
+                controller.AddImpulse(releaseDirection * releaseImpulseForce);
+        }
+
+        targetReceiver = null;
+        targetBody = null;
+        targetCollisionOffset = Vector3.zero;
+        anchorTransform = null;
+        lastMotionDirection = Vector3.zero;
+        lastImpulsedReceiver = null;
+        lastOrbitBlocker = null;
+    }
+
+    private Vector3 GetReleaseDirection(GrabState previousState)
+    {
+        if (lastMotionDirection.sqrMagnitude > 0.0001f)
+            return lastMotionDirection;
+
+        if (previousState != GrabState.TargetOrbitingPlayer &&
+            previousState != GrabState.PlayerOrbitingAnchor)
+            return Vector3.zero;
+
+        Vector3 tangent = Vector3.Cross(Vector3.up, orbitOffset) * orbitDirection;
+        return tangent.sqrMagnitude > 0.0001f ? tangent.normalized : Vector3.zero;
+    }
+
+    private Vector3 RotateOrbit(Vector3 offset)
+    {
+        float radius = offset.magnitude;
+        if (radius <= 0.0001f) return offset;
+
+        float angle = orbitLinearSpeed / radius * Mathf.Rad2Deg * orbitDirection * Time.fixedDeltaTime;
+        return Quaternion.AngleAxis(angle, Vector3.up) * offset;
+    }
+
+    private bool CanMovePlayer(Vector3 movement, Vector3 desiredPosition)
+    {
+        float distance = movement.magnitude;
+        if (distance <= 0.0001f) return true;
+
+        int count = Physics.SphereCastNonAlloc(rb.position, playerCollisionRadius,
+            movement / distance, orbitHits, distance, hitMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            Collider hitCollider = orbitHits[i].collider;
+            if (hitCollider.transform.root == transform.root || hitCollider == lastOrbitBlocker)
+                continue;
+
+            lastOrbitBlocker = hitCollider;
+            return false;
+        }
+
+        return HasGroundAt(desiredPosition);
+    }
+
+    private Vector3 GetTargetOrbitMovement()
+    {
+        Vector3 reflectedOffset = RotateOrbit(orbitOffset);
+        return rb.position + reflectedOffset - targetBody.position;
+    }
+
+    private Vector3 GetPlayerOrbitMovement(Vector3 anchorPosition)
+    {
+        Vector3 reflectedPosition = anchorPosition + RotateOrbit(orbitOffset);
+        reflectedPosition.y = playerOrbitHeight;
+        return reflectedPosition - rb.position;
+    }
+
+    private void CachePlayerCollisionRadius()
+    {
+        if (playerCollider == null) return;
+
+        Vector3 extents = playerCollider.bounds.extents;
+        playerCollisionRadius = Mathf.Max(playerCollisionRadius, extents.x, extents.z);
+    }
+
+    private bool HasGroundAt(Vector3 position)
+    {
+        Vector3 origin = position + Vector3.up * 0.25f;
+        int count = Physics.RaycastNonAlloc(origin, Vector3.down, groundHits,
+            groundCheckDistance, hitMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            if (groundHits[i].collider.transform.root != transform.root)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void FaceAnchor(Vector3 anchorPosition)
+    {
+        Vector3 direction = anchorPosition - rb.position;
+        direction.y = 0f;
+        if (direction.sqrMagnitude > 0.0001f)
+            rb.MoveRotation(Quaternion.LookRotation(direction));
+    }
+
+    private void RememberMotion(Vector3 movement)
+    {
+        if (movement.sqrMagnitude > 0.000001f)
+            lastMotionDirection = movement.normalized;
+    }
+
+    private Vector3 GetAnchorPosition()
+    {
+        return anchorTransform != null ? anchorTransform.TransformPoint(anchorLocalPoint) : transform.position;
+    }
+
+    private Vector3 GetAimDirection()
+    {
+        if (mainCamera != null)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            Plane plane = new Plane(Vector3.up, transform.position);
+            if (plane.Raycast(ray, out float distance))
+            {
+                Vector3 direction = ray.GetPoint(distance) - transform.position;
+                direction.y = 0f;
+                if (direction.sqrMagnitude > 0.0001f) return direction.normalized;
+            }
+        }
+
+        Vector3 forward = transform.forward;
+        forward.y = 0f;
+        return forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
+    }
+
+    private static Vector2 ToVector2(Vector3 direction)
+    {
+        return new Vector2(direction.x, direction.z);
+    }
+
+    private void OnProjectileMissed()
+    {
+        projectile = null;
+        CancelGrab(false);
+    }
+
+    private void OnAbilityActivated(ActiveAbility ability)
+    {
+        if (ability != this && state != GrabState.Idle) CancelGrab(true);
+    }
+
+    private void OnPlayerDamaged(int damage) => CancelGrab(true);
+    private void OnPlayerDied() => CancelGrab(false);
+
+    private void OnDisable()
+    {
+        UnsubscribeFromInterruptions();
+
+        CancelGrab(false);
+    }
+
+    private void SubscribeToInterruptions()
+    {
+        if (abilityManager == null) return;
+
+        abilityManager.AbilityActivated -= OnAbilityActivated;
+        abilityManager.AbilityActivated += OnAbilityActivated;
+        if (health != null)
+        {
+            health.onDamaged.RemoveListener(OnPlayerDamaged);
+            health.onDeath.RemoveListener(OnPlayerDied);
+            health.onDamaged.AddListener(OnPlayerDamaged);
+            health.onDeath.AddListener(OnPlayerDied);
+        }
+
+        if (knockoutSystem == null) return;
+        knockoutSystem.onKnockoutStarted.RemoveListener(OnPlayerKnockedOut);
+        knockoutSystem.onGameOver.RemoveListener(OnPlayerDied);
+        knockoutSystem.onKnockoutStarted.AddListener(OnPlayerKnockedOut);
+        knockoutSystem.onGameOver.AddListener(OnPlayerDied);
+    }
+
+    private void UnsubscribeFromInterruptions()
+    {
+        if (abilityManager != null) abilityManager.AbilityActivated -= OnAbilityActivated;
+        if (health != null)
+        {
+            health.onDamaged.RemoveListener(OnPlayerDamaged);
+            health.onDeath.RemoveListener(OnPlayerDied);
+        }
+
+        if (knockoutSystem == null) return;
+        knockoutSystem.onKnockoutStarted.RemoveListener(OnPlayerKnockedOut);
+        knockoutSystem.onGameOver.RemoveListener(OnPlayerDied);
+    }
+
+    private void OnPlayerKnockedOut() => CancelGrab(true);
+}
