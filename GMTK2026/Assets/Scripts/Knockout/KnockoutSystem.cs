@@ -110,9 +110,9 @@ namespace ForgettingBoxer.Knockout
         public void TakeDamage(int damage)
         {
             if (damage <= 0 || isKnockedOut || isGameOver || IsInvulnerable) return;
-            // Damage grants a star without the collect animation: all accumulated
+            // Damage grants stars without the collect animation: all accumulated
             // stars must immediately scatter from the counter instead.
-            stars++;
+            stars += damage;
             RefreshHUD();
             onStarCountChanged?.Invoke();
             BeginKnockout();
