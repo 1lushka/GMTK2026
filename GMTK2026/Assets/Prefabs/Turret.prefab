@@ -84,12 +84,12 @@ MonoBehaviour:
   turretBase: {fileID: 6177523762129222710}
   turretAnimator: {fileID: 2859594462977477086}
   shurikenPrefab: {fileID: 3398851796600564002, guid: 379d6c0629e2f29459543931da92bb94, type: 3}
-  fireInterval: 1.5
-  shurikenSpeed: 7
-  attackRange: 5
+  fireInterval: 2
+  shurikenSpeed: 3
+  attackRange: 10
   firePoint: {fileID: 5097105009791013808}
-  rotateTowardsPlayer: 1
-  rotationSpeed: 5
+  rotateTowardsPlayer: 0
+  rotationSpeed: 1
   fireTriggerName: Fire
 --- !u!114 &4953817844363024809
 MonoBehaviour:
@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 3
+  maxHealth: 100
   onDeath:
     m_PersistentCalls:
       m_Calls: []

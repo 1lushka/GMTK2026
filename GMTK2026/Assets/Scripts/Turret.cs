@@ -70,7 +70,8 @@ public class Turret : MonoBehaviour
         if (shurikenPrefab == null) return;
 
         Vector3 spawnPos = firePoint.position;
-        Vector3 direction = (player.position - spawnPos).normalized;
+        Vector3 direction = Vector3.zero;
+        direction = -firePoint.forward;
         direction.y = 0f;
 
         GameObject shurikenObj = Instantiate(shurikenPrefab, spawnPos, Quaternion.LookRotation(direction));
