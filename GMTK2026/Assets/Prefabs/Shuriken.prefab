@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6526925656778580996}
   - component: {fileID: 7603735743730323642}
   - component: {fileID: 1941700754575938130}
+  - component: {fileID: 1931992057717799019}
   m_Layer: 0
   m_Name: Shuriken
   m_TagString: Untagged
@@ -95,6 +96,27 @@ MonoBehaviour:
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!65 &1931992057717799019
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3398851796600564002}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.47320867, y: 0.12698051, z: 0.4923541}
+  m_Center: {x: 0.016013563, y: 0.037134096, z: -0.021057457}
 --- !u!1 &4499921776956789047
 GameObject:
   m_ObjectHideFlags: 0
