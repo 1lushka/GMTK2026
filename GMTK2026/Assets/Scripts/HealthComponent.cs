@@ -7,6 +7,7 @@ public class HealthComponent : MonoBehaviour
     [SerializeField] private int maxHealth = 3;
     private int currentHealth;
     private bool isStunned;
+    private DashAbility dashAbility;
 
     [System.Serializable]
     public class DamagedEvent : UnityEvent<int> { }  
@@ -16,11 +17,12 @@ public class HealthComponent : MonoBehaviour
     private void Awake()
     {
         currentHealth = maxHealth;
+        dashAbility = GetComponentInParent<DashAbility>();
     }
 
     public void TakeDamage(int damage)
     {
-        if (currentHealth <= 0) return;
+        if (currentHealth <= 0 || (dashAbility != null && dashAbility.IsDashing)) return;
 
         currentHealth -= damage;
         onDamaged?.Invoke(damage);   

@@ -30,6 +30,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     [SerializeField] private bool drawVelocityGizmo = true;
 
     private Rigidbody body;
+    private DashAbility dashAbility;
     private Vector2 decelerationStartVelocity;
     private float decelerationElapsed;
     private bool externallyControlled;
@@ -55,6 +56,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
+        dashAbility = GetComponentInParent<DashAbility>();
         body.linearVelocity = Vector3.zero;
         currentState = State.Idle;
 
@@ -84,6 +86,8 @@ public sealed class ImpulseReceiver : MonoBehaviour
 
     private void ApplyImpulseInternal(Vector2 direction, float force, GameObject source, bool ignoreLock)
     {
+        if (dashAbility != null && dashAbility.IsDashing) return;
+
         direction = direction.sqrMagnitude > 0f ? direction.normalized : Vector2.zero;
         force = Mathf.Max(0f, force);
 
