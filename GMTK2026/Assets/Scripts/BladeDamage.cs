@@ -9,11 +9,27 @@ public sealed class BladeDamage : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        ApplyDamage(other, true);
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        ApplyDamage(other, false);
+    }
+
+    private void ApplyDamage(Collider other, bool allowHealthFallback)
+    {
         HealthComponent targetHealth = other.GetComponentInParent<HealthComponent>();
-        if (targetHealth != null)
+        if (targetHealth == null) return;
+
+        if (targetHealth.CompareTag("Player"))
         {
-            if (!targetHealth.CompareTag("Player") || !KnockoutAPI.TakeDamage(damage))
+            if (!KnockoutAPI.TakeDamage(damage) && allowHealthFallback)
                 targetHealth.TakeDamage(damage);
+            return;
         }
+
+        if (allowHealthFallback)
+            targetHealth.TakeDamage(damage);
     }
 }
