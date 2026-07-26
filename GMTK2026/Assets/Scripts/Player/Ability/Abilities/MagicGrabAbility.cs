@@ -11,6 +11,13 @@ public sealed class MagicGrabAbility : ActiveAbility
         PlayerOrbitingAnchor
     }
 
+    private enum OrbitCollisionResult
+    {
+        None,
+        MovableHit,
+        SolidHit
+    }
+
     [Header("Glove Projectile")]
     [SerializeField] private MagicGrabProjectile glovePrefab;
     [SerializeField] private float gloveProjectileSpeed = 15f;
@@ -21,7 +28,6 @@ public sealed class MagicGrabAbility : ActiveAbility
 
     [Header("Orbit")]
     [SerializeField, Min(0f)] private float orbitLinearSpeed = 6f;
-    [SerializeField] private float collisionImpulseForce = 8f;
     [SerializeField] private float releaseImpulseForce = 10f;
     [SerializeField] private float playerCollisionRadius = 0.45f;
     [SerializeField] private float groundCheckDistance = 2f;
@@ -160,10 +166,18 @@ public sealed class MagicGrabAbility : ActiveAbility
         Vector3 desiredOffset = RotateOrbit(orbitOffset);
         Vector3 movement = rb.position + desiredOffset - targetBody.position;
         Vector3 collisionOrigin = targetBody.position + targetCollisionOffset;
-        if (HandleOrbitCollisions(collisionOrigin, movement, targetReceiver))
+        OrbitCollisionResult collision = HandleOrbitCollisions(collisionOrigin, movement, targetReceiver);
+        if (collision == OrbitCollisionResult.SolidHit)
         {
             orbitDirection *= -1f;
             RememberMotion(GetTargetOrbitMovement());
+            FaceAnchor(targetBody.position);
+            return;
+        }
+
+        if (collision == OrbitCollisionResult.MovableHit)
+        {
+            RememberMotion(movement);
             FaceAnchor(targetBody.position);
             return;
         }
@@ -199,13 +213,15 @@ public sealed class MagicGrabAbility : ActiveAbility
         FaceAnchor(anchorPosition);
     }
 
-    private bool HandleOrbitCollisions(Vector3 origin, Vector3 movement, ImpulseReceiver movingReceiver)
+    private OrbitCollisionResult HandleOrbitCollisions(
+        Vector3 origin, Vector3 movement, ImpulseReceiver movingReceiver)
     {
         float distance = movement.magnitude;
-        if (distance <= 0.0001f) return false;
+        if (distance <= 0.0001f) return OrbitCollisionResult.None;
 
         int count = Physics.SphereCastNonAlloc(origin, collisionRadius, movement / distance,
             orbitHits, distance, hitMask, QueryTriggerInteraction.Ignore);
+        bool launchedObject = false;
         for (int i = 0; i < count; i++)
         {
             Collider hitCollider = orbitHits[i].collider;
@@ -216,22 +232,23 @@ public sealed class MagicGrabAbility : ActiveAbility
             {
                 if (hitCollider == lastOrbitBlocker) continue;
                 lastOrbitBlocker = hitCollider;
-                return true;
+                return OrbitCollisionResult.SolidHit;
             }
-            ApplyCollisionImpulse(other, movement);
+            launchedObject |= ApplyCollisionImpulse(other, movement);
         }
 
-        return false;
+        return launchedObject ? OrbitCollisionResult.MovableHit : OrbitCollisionResult.None;
     }
 
-    private void ApplyCollisionImpulse(ImpulseReceiver receiver, Vector3 movement)
+    private bool ApplyCollisionImpulse(ImpulseReceiver receiver, Vector3 movement)
     {
-        if (receiver == lastImpulsedReceiver && Time.time < nextCollisionImpulseTime) return;
+        if (receiver == lastImpulsedReceiver && Time.time < nextCollisionImpulseTime) return false;
 
         Vector2 direction = new Vector2(movement.x, movement.z).normalized;
-        receiver.ApplyImpulse(direction, collisionImpulseForce, gameObject);
+        receiver.ApplyImpulse(direction, releaseImpulseForce, gameObject);
         lastImpulsedReceiver = receiver;
         nextCollisionImpulseTime = Time.time + 0.15f;
+        return true;
     }
 
     public void CancelGrab(bool applyInertia)

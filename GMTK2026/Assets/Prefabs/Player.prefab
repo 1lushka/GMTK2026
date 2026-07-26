@@ -361,7 +361,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   orbitLinearSpeed: 9
-  collisionImpulseForce: 8
   releaseImpulseForce: 3
   playerCollisionRadius: 0.45
   groundCheckDistance: 2
