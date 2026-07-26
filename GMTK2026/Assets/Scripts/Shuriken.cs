@@ -1,3 +1,4 @@
+using ForgettingBoxer.Knockout;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody), typeof(HealthComponent))]
@@ -41,7 +42,8 @@ public class Shuriken : MonoBehaviour
             HealthComponent targetHealth = collision.gameObject.GetComponentInParent<HealthComponent>();
             if (targetHealth != null)
             {
-                targetHealth.TakeDamage(1);
+                if (!targetHealth.CompareTag("Player") || !KnockoutAPI.TakeDamage(1))
+                    targetHealth.TakeDamage(1);
             }
         }
 

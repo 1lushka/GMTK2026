@@ -201,7 +201,8 @@ public class EnemyController : MonoBehaviour
         HealthComponent playerHealth = player.GetComponent<HealthComponent>();
         if (playerHealth != null)
         {
-            playerHealth.TakeDamage(attackDamage);
+            if (!ForgettingBoxer.Knockout.KnockoutAPI.TakeDamage(attackDamage))
+                playerHealth.TakeDamage(attackDamage);
             lastAttackTime = Time.time;
         }
     }

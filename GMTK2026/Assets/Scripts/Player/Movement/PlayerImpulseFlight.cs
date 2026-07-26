@@ -1,3 +1,4 @@
+using ForgettingBoxer.Knockout;
 using UnityEngine;
 
 [RequireComponent(typeof(TopDownController), typeof(ImpulseReceiver))]
@@ -27,6 +28,21 @@ public sealed class PlayerImpulseFlight : MonoBehaviour
             flightVisual = controller.Animator.transform;
         if (flightVisual != null)
             standingRotation = flightVisual.localRotation;
+    }
+
+    private void OnEnable()
+    {
+        receiver.ImpulseApplied += OnImpulseApplied;
+    }
+
+    private void OnDisable()
+    {
+        receiver.ImpulseApplied -= OnImpulseApplied;
+    }
+
+    private void OnImpulseApplied(ImpulseInfo impulse)
+    {
+        KnockoutAPI.AddStar();
     }
 
     private void Update()

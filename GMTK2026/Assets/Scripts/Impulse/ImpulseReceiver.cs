@@ -40,6 +40,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private readonly HashSet<ImpulseReceiver> collidedReceivers = new HashSet<ImpulseReceiver>();
 
     public event Action<ImpulseInfo> ImpulseReceived;
+    public event Action<ImpulseInfo> ImpulseApplied;
 
     public State CurrentState => currentState;
     public Vector2 CurrentVelocity => currentVelocity;
@@ -114,6 +115,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
         currentSpeed = currentVelocity.magnitude;
         remainingFlightTime = profile.FlightTime;
         currentState = State.Flying;
+        ImpulseApplied?.Invoke(info);
     }
 
     public bool BeginExternalControl()

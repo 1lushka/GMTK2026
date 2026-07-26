@@ -1,3 +1,4 @@
+using ForgettingBoxer.Knockout;
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
@@ -10,6 +11,9 @@ public sealed class BladeDamage : MonoBehaviour
     {
         HealthComponent targetHealth = other.GetComponentInParent<HealthComponent>();
         if (targetHealth != null)
-            targetHealth.TakeDamage(damage);
+        {
+            if (!targetHealth.CompareTag("Player") || !KnockoutAPI.TakeDamage(damage))
+                targetHealth.TakeDamage(damage);
+        }
     }
 }
