@@ -156,7 +156,7 @@ public sealed class MagicGrabAbility : ActiveAbility
         if (HandleOrbitCollisions(targetBody.position, movement, targetReceiver))
         {
             orbitDirection *= -1f;
-            lastMotionDirection = Vector3.zero;
+            RememberMotion(-movement);
             FaceAnchor(targetBody.position);
             return;
         }
@@ -179,7 +179,7 @@ public sealed class MagicGrabAbility : ActiveAbility
         if (!CanMovePlayer(movement, desiredPosition))
         {
             orbitDirection *= -1f;
-            lastMotionDirection = Vector3.zero;
+            RememberMotion(-movement);
             FaceAnchor(anchorPosition);
             return;
         }
