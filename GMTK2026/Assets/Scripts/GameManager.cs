@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // ¬ызываетс€ один раз при старте уровн€, если список пуст
     public void InitializeIfEmpty(IEnumerable<string> abilityIds)
     {
         if (activeAbilities.Count == 0)
@@ -44,7 +43,7 @@ public class GameManager : MonoBehaviour
     public void ReturnToLevel()
     {
         if (string.IsNullOrEmpty(currentLevelName))
-            currentLevelName = "Level1"; // им€ вашего первого уровн€
+            currentLevelName = "GameLevel";
         SceneManager.LoadScene(currentLevelName);
     }
 }
