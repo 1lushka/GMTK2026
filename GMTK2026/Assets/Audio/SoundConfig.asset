@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: SoundConfig
   m_EditorClassIdentifier: 
   menuMusic: {fileID: 0}
-  gameMusic: {fileID: 0}
-  musicVolume: 0.7
+  gameMusic: {fileID: 8300000, guid: c8e60a628725146afb594c78e872eeed, type: 3}
+  musicVolume: 0.4
   sounds:
   - id: 0
     clips:
@@ -32,7 +32,7 @@ MonoBehaviour:
     clips:
     - {fileID: 8300000, guid: 7e26c9daf4c32483b9c2790e662d3f1b, type: 3}
     volume: 0.262
-    pitchRange: {x: 8, y: 12}
+    pitchRange: {x: 4, y: 5}
     spatial3D: 0
     cooldown: 0
     maxVoices: 2
