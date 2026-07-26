@@ -128,6 +128,8 @@ MonoBehaviour:
   liftHeight: 0.5
   liftDuration: 0.15
   returnDuration: 0.2
+  hoverAmplitude: 0.15
+  hoverPeriod: 0.6
   liftEase: 6
   returnEase: 5
   impulseDistance: 4
@@ -5008,6 +5010,8 @@ GameObject:
   - component: {fileID: 3031788469969946939}
   - component: {fileID: 6329749773647210618}
   - component: {fileID: 5000132957593679144}
+  - component: {fileID: 910000000000000001}
+  - component: {fileID: 910000000000000002}
   - component: {fileID: 3920796802043564900}
   - component: {fileID: 7717234317880383111}
   - component: {fileID: 584660864332301281}
@@ -5090,6 +5094,42 @@ MonoBehaviour:
   runParticleSpeedThreshold: 0.8
   debugVelocity: 0
   enableMovement: 1
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4233913195724875108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb425ec88e3224349ae8d7073354d64a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: ac015867b80ac4d43806baac010eb270, type: 2}
+  onImpulseReceived:
+    m_PersistentCalls:
+      m_Calls: []
+  currentState: 0
+  currentVelocity: {x: 0, y: 0}
+  currentSpeed: 0
+  remainingFlightTime: 0
+  remainingLockTime: 0
+  drawVelocityGizmo: 1
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4233913195724875108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7984b75dc4a448ae901233c193c2ba2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flightVisual: {fileID: 0}
+  standUpDuration: 0.08
 --- !u!114 &3920796802043564900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5145,7 +5185,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 7072638987662486187, guid: 27ff3f83ab7fe9c488c8d2a1ee961fa6, type: 3}
   projectileSpeed: 15
   spawnDistance: 0.5
-  explosionForce: 10
+  explosionForce: 5
   explosionRadius: 3
   explosionEffectPrefab: {fileID: 0}
   windUpTime: 0.2
@@ -5190,7 +5230,7 @@ MonoBehaviour:
   cooldown: 0.5
   glovePrefab: {fileID: 11400000, guid: c21756566da9440ea1d47a01e2f284a2, type: 3}
   gloveProjectileSpeed: 15
-  gloveMaxDistance: 5
+  gloveMaxDistance: 6
   gloveSpawnDistance: 0.6
   collisionRadius: 0.2
   hitMask:

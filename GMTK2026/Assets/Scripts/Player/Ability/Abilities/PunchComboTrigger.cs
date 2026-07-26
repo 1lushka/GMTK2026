@@ -34,6 +34,7 @@ public class PunchComboTrigger : MonoBehaviour
         public HealthComponent Health;
         public PunchComboTargetMotion Motion;
         public ImpulseReceiver ImpulseReceiver;
+        public TrainingStand TrainingStand;
         public bool HasExternalControl;
         public float AccumulatedDamage;
     }
@@ -78,7 +79,8 @@ public class PunchComboTrigger : MonoBehaviour
             }
             else
             {
-                target.Motion.ReturnToGround(returnDuration, returnEase);
+                if (target.Motion != null)
+                    target.Motion.ReturnToGround(returnDuration, returnEase);
             }
         }
 
@@ -99,6 +101,9 @@ public class PunchComboTrigger : MonoBehaviour
                 invalidTargets.Add(pair.Key);
                 continue;
             }
+
+            if (target.TrainingStand != null)
+                target.TrainingStand.KeepSpinningFromCombo();
 
             target.AccumulatedDamage += damagePerSecond * Time.deltaTime;
             int wholeDamage = Mathf.FloorToInt(target.AccumulatedDamage);
@@ -122,6 +127,20 @@ public class PunchComboTrigger : MonoBehaviour
 
         if (!targets.TryGetValue(health, out TargetState target))
         {
+            TrainingStand trainingStand = health.GetComponent<TrainingStand>();
+            if (trainingStand != null)
+            {
+                target = new TargetState
+                {
+                    Health = health,
+                    TrainingStand = trainingStand
+                };
+                targets.Add(health, target);
+                trainingStand.KeepSpinningFromCombo();
+                target.Colliders.Add(other);
+                return;
+            }
+
             PunchComboTargetMotion motion = health.GetComponent<PunchComboTargetMotion>();
             if (motion == null)
                 motion = health.gameObject.AddComponent<PunchComboTargetMotion>();

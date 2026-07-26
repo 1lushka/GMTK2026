@@ -33,6 +33,9 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private Vector2 decelerationStartVelocity;
     private float decelerationElapsed;
     private bool externallyControlled;
+    private bool airborne;
+    private bool originalUseGravity;
+    private float groundY;
     private readonly HashSet<ImpulseReceiver> collidedReceivers = new HashSet<ImpulseReceiver>();
 
     public event Action<ImpulseInfo> ImpulseReceived;
@@ -42,8 +45,10 @@ public sealed class ImpulseReceiver : MonoBehaviour
     public float CurrentSpeed => currentSpeed;
     public float RemainingFlightTime => remainingFlightTime;
     public float RemainingLockTime => remainingLockTime;
+    public GameObject LastImpulseSource { get; private set; }
     public bool IsMoving => currentState == State.Flying || currentState == State.Decelerating;
     public bool IsTemporaryLocked => currentState == State.TemporaryLocked;
+    public bool IsAirborne => airborne;
     public bool IsMovable => profile != null && profile.IsMovable;
     public bool CanBeExternallyMoved => enabled && IsMovable && !IsTemporaryLocked;
 
@@ -69,6 +74,16 @@ public sealed class ImpulseReceiver : MonoBehaviour
 
     public void ApplyImpulse(Vector2 direction, float force, GameObject source = null)
     {
+        ApplyImpulseInternal(direction, force, source, false);
+    }
+
+    public void ForceApplyImpulse(Vector2 direction, float force, GameObject source = null)
+    {
+        ApplyImpulseInternal(direction, force, source, true);
+    }
+
+    private void ApplyImpulseInternal(Vector2 direction, float force, GameObject source, bool ignoreLock)
+    {
         direction = direction.sqrMagnitude > 0f ? direction.normalized : Vector2.zero;
         force = Mathf.Max(0f, force);
 
@@ -76,8 +91,19 @@ public sealed class ImpulseReceiver : MonoBehaviour
         ImpulseReceived?.Invoke(info);
         onImpulseReceived?.Invoke(direction, force, source);
 
-        if (!enabled || !profile.IsMovable || IsTemporaryLocked || direction == Vector2.zero || force <= 0f)
+        if (!enabled || !profile.IsMovable || (!ignoreLock && IsTemporaryLocked) ||
+            direction == Vector2.zero || force <= 0f)
             return;
+
+        LastImpulseSource = source;
+
+        if (!airborne)
+        {
+            groundY = body.position.y;
+            originalUseGravity = body.useGravity;
+            body.useGravity = false;
+            airborne = true;
+        }
 
         Vector2 addedVelocity = direction * (force * profile.SpeedPerForce);
         currentVelocity = Vector2.ClampMagnitude(currentVelocity + addedVelocity, profile.MaxSpeed);
@@ -130,14 +156,28 @@ public sealed class ImpulseReceiver : MonoBehaviour
                 break;
         }
 
+        if (airborne && !IsMoving)
+            Move(deltaTime);
+
         currentSpeed = currentVelocity.magnitude;
     }
 
     private void Move(float deltaTime)
     {
         Vector3 displacement = new Vector3(currentVelocity.x, 0f, currentVelocity.y);
-        body.MovePosition(body.position + displacement * deltaTime);
+        Vector3 nextPosition = body.position + displacement * deltaTime;
+        float targetY = currentState == State.Flying ? groundY + profile.FlightHeight : groundY;
+        float duration = currentState == State.Flying ? profile.LiftDuration : profile.LandingDuration;
+        nextPosition.y = Mathf.MoveTowards(body.position.y, targetY,
+            profile.FlightHeight / Mathf.Max(0.01f, duration) * deltaTime);
+        body.MovePosition(nextPosition);
         body.linearVelocity = Vector3.zero;
+
+        if (currentState != State.Flying && Mathf.Approximately(nextPosition.y, groundY))
+        {
+            airborne = false;
+            body.useGravity = originalUseGravity;
+        }
     }
 
     private void BeginDeceleration()
@@ -160,6 +200,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     {
         if (!IsMoving) return;
         if (IsLandingCollision(collision)) return;
+        if (collision.collider.GetComponentInParent<TrainingStandArm>() != null) return;
 
         ImpulseReceiver other = collision.collider.GetComponentInParent<ImpulseReceiver>();
         if (other == null)
@@ -221,6 +262,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     {
         remainingLockTime = 0f;
         currentState = State.Idle;
+        LastImpulseSource = null;
         collidedReceivers.Clear();
     }
 

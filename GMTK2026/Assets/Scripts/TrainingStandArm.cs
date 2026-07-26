@@ -12,6 +12,6 @@ public class TrainingStandArm : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (stand != null)
-            stand.OnArmCollision(collision.collider, collision.GetContact(0).point);
+            stand.OnArmCollision(collision.collider, collision.GetContact(0).point, collision.relativeVelocity);
     }
 }

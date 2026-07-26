@@ -1,38 +1,37 @@
-﻿using System.Collections;
 using UnityEngine;
 
 public class TrainingStand : MonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private HealthComponent health;
-    [SerializeField] private Rigidbody rb; // назначить в инспекторе или найдётся
+    [SerializeField] private Rigidbody rb;
 
-    [Header("Player Collision")]
+    [Header("Spin")]
     [SerializeField] private float playerSpinAngle = 180f;
-    [SerializeField] private float playerSpinDuration = 0.3f;
+    [SerializeField, Min(0.01f)] private float playerSpinDuration = 0.3f;
     [SerializeField] private float minPlayerSpeed = 3f;
-
-    [Header("Damage & Impulse")]
     [SerializeField] private float damageSpinMultiplier = 15f;
     [SerializeField] private float maxSpinAngle = 720f;
-    [SerializeField] private float impulseTorqueMultiplier = 500f; // для преобразования силы импульса в крутящий момент
+    [SerializeField] private float impulseTorqueMultiplier = 500f;
 
     [Header("Impact During Spin")]
-    [SerializeField] private float spinThreshold = 30f;   // угловая скорость (град/с), выше которой наносится урон
+    [SerializeField] private float spinThreshold = 30f;
     [SerializeField] private int damageToEnemies = 1;
     [SerializeField] private float pushForce = 10f;
 
-    private bool playerSpinActive;
-    private Coroutine playerSpinCoroutine;
-    private float originalAngularDrag;
+    private float spinTimeRemaining;
+    private float spinDirection = 1f;
+    private float originalAngularDamping;
+    private bool IsSpinActive => spinTimeRemaining > 0f;
 
     private void Awake()
     {
         if (health == null) health = GetComponent<HealthComponent>();
         if (rb == null) rb = GetComponent<Rigidbody>();
 
-        rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-        originalAngularDrag = rb.angularDamping;
+        rb.constraints = RigidbodyConstraints.FreezePosition |
+            RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        originalAngularDamping = rb.angularDamping;
 
         if (health != null)
         {
@@ -41,94 +40,140 @@ public class TrainingStand : MonoBehaviour
         }
     }
 
-    // Вызывается из TrainingStandArm при OnCollisionEnter
-    public void OnArmCollision(Collider other, Vector3 contactPoint)
+    private void FixedUpdate()
     {
-        // Если столкнулись с игроком и ещё не запущено принудительное вращение от игрока
-        if (other.CompareTag("Player") && !playerSpinActive)
-        {
-            TopDownController controller = other.GetComponentInParent<TopDownController>();
-            if (controller != null)
-            {
-                Vector3 playerVelocity = controller.CurrentVelocity;
-                float speed = playerVelocity.magnitude;
-                if (speed >= minPlayerSpeed)
-                {
-                    Vector3 dirToContact = (contactPoint - transform.position).normalized;
-                    dirToContact.y = 0f;
-                    float dot = Vector3.Dot(dirToContact, playerVelocity.normalized);
-                    if (Mathf.Abs(dot) < 0.3f) return; // касательный удар
+        if (spinTimeRemaining <= 0f) return;
 
-                    Vector3 cross = Vector3.Cross(dirToContact, playerVelocity.normalized);
-                    float sign = Mathf.Sign(cross.y);
-                    if (Mathf.Approximately(sign, 0f)) sign = 1f;
-
-                    float targetAngularSpeed = Mathf.Deg2Rad * playerSpinAngle / Mathf.Max(playerSpinDuration, 0.01f) * sign;
-                    playerSpinCoroutine = StartCoroutine(PlayerSpinRoutine(targetAngularSpeed, playerSpinDuration));
-                }
-            }
-        }
-        // Во время вращения (своя угловая скорость или от физики) наносим урон и отбрасываем
-        else if (Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg > spinThreshold)
-        {
-            if (other.CompareTag("Player"))
-            {
-                ApplyPush(other.GetComponentInParent<ImpulseReceiver>());
-            }
-            else
-            {
-                HealthComponent targetHealth = other.GetComponentInParent<HealthComponent>();
-                if (targetHealth != null)
-                    targetHealth.TakeDamage(damageToEnemies);
-
-                ApplyPush(other.GetComponentInParent<ImpulseReceiver>());
-            }
-        }
+        spinTimeRemaining -= Time.fixedDeltaTime;
+        if (spinTimeRemaining <= 0f)
+            rb.angularDamping = originalAngularDamping;
     }
 
-    // Вызывается при получении урона (из HealthComponent)
-    private void OnDamaged(int damage)
+    public void OnArmCollision(Collider other, Vector3 contactPoint, Vector3 relativeVelocity)
     {
-        float angle = Mathf.Clamp(damage * damageSpinMultiplier, 0f, maxSpinAngle);
-        float sign = Random.value > 0.5f ? 1f : -1f;
-        rb.AddTorque(0, angle * Mathf.Deg2Rad * sign, 0, ForceMode.Impulse);
+        ImpulseReceiver receiver = other.GetComponentInParent<ImpulseReceiver>();
+        TopDownController player = other.GetComponentInParent<TopDownController>();
+        Vector3 incoming = receiver != null
+            ? new Vector3(receiver.CurrentVelocity.x, 0f, receiver.CurrentVelocity.y)
+            : Vector3.zero;
+        if (player != null && player.CurrentVelocity.sqrMagnitude > incoming.sqrMagnitude)
+            incoming = player.CurrentVelocity;
+        if (incoming.sqrMagnitude < relativeVelocity.sqrMagnitude)
+            incoming = relativeVelocity;
+
+        bool flyingReceiver = receiver != null && receiver.CurrentState == ImpulseReceiver.State.Flying &&
+            receiver.LastImpulseSource != gameObject && incoming.magnitude >= minPlayerSpeed;
+        if (!IsSpinActive && (player != null || flyingReceiver))
+        {
+            StartSpin(contactPoint, incoming, Mathf.Max(incoming.magnitude, minPlayerSpeed));
+        }
+
+        if (Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg <= spinThreshold) return;
+
+        HealthComponent targetHealth = other.GetComponentInParent<HealthComponent>();
+        if (targetHealth != null && targetHealth != health)
+            targetHealth.TakeDamage(damageToEnemies);
+
+        ApplyPush(receiver, contactPoint);
     }
 
-    // Вызывается извне (например, взрывным снарядом) для добавления вращения без урона
     public void ApplyImpulseSpin(float force, Vector3 sourcePosition)
     {
-        Vector3 dirToSource = (sourcePosition - transform.position).normalized;
-        Vector3 cross = Vector3.Cross(transform.forward, dirToSource);
-        float sign = cross.y > 0 ? 1f : -1f;
-        float torque = force * impulseTorqueMultiplier * sign;
-        rb.AddTorque(0, torque * Mathf.Deg2Rad, 0, ForceMode.Impulse);
+        if (IsSpinActive)
+        {
+            RefreshSpinTime();
+            return;
+        }
+
+        Vector3 sourceOffset = sourcePosition - transform.position;
+        float direction = Mathf.Sign(Vector3.Cross(transform.forward, sourceOffset).y);
+        if (Mathf.Approximately(direction, 0f)) direction = spinDirection;
+        AddSpinSpeed(force * impulseTorqueMultiplier, direction);
     }
 
-    // Корутина временного отключения трения и задания постоянной угловой скорости для игрока
-    private IEnumerator PlayerSpinRoutine(float targetAngularSpeed, float duration)
+    private void OnDamaged(int damage)
     {
-        playerSpinActive = true;
+        if (IsSpinActive)
+        {
+            RefreshSpinTime();
+            EnsureImpactSpinSpeed();
+            return;
+        }
+
+        AddSpinSpeed(Mathf.Max(playerSpinAngle, damage * damageSpinMultiplier), spinDirection);
+    }
+
+    public void KeepSpinningFromCombo()
+    {
+        if (IsSpinActive)
+        {
+            RefreshSpinTime();
+            EnsureImpactSpinSpeed();
+        }
+        else
+        {
+            AddSpinSpeed(playerSpinAngle, spinDirection);
+        }
+    }
+
+    private void StartSpin(Vector3 contactPoint, Vector3 incomingVelocity, float force)
+    {
+        Vector3 radius = contactPoint - transform.position;
+        radius.y = 0f;
+        float direction = Mathf.Sign(Vector3.Cross(radius, incomingVelocity).y);
+        if (Mathf.Approximately(direction, 0f)) direction = spinDirection;
+        AddSpinSpeed(Mathf.Max(playerSpinAngle, force * impulseTorqueMultiplier), direction);
+    }
+
+    private void AddSpinSpeed(float angle, float direction)
+    {
+        spinDirection = direction;
+        spinTimeRemaining = playerSpinDuration;
         rb.angularDamping = 0f;
-        rb.angularVelocity = new Vector3(0, targetAngularSpeed, 0);
 
-        yield return new WaitForSeconds(duration);
-
-        rb.angularDamping = originalAngularDrag;
-        playerSpinActive = false;
-        // угловую скорость не обнуляем, пусть трение само гасит
+        float duration = Mathf.Max(0.01f, playerSpinDuration);
+        float maxSpeed = maxSpinAngle / duration;
+        float addedSpeed = Mathf.Abs(angle) / duration;
+        float currentSpeed = Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg;
+        float speed = Mathf.Min(currentSpeed + addedSpeed, maxSpeed);
+        rb.angularVelocity = Vector3.up * (speed * Mathf.Deg2Rad * spinDirection);
     }
 
-    private void ApplyPush(ImpulseReceiver target)
+    private void RefreshSpinTime()
     {
-        if (target == null) return;
+        spinTimeRemaining = playerSpinDuration;
+        rb.angularDamping = 0f;
+    }
 
-        Vector3 offset = target.transform.position - transform.position;
-        Vector2 direction = new Vector2(offset.x, offset.z);
-        target.ApplyImpulse(direction, pushForce, gameObject);
+    private void EnsureImpactSpinSpeed()
+    {
+        float duration = Mathf.Max(0.01f, playerSpinDuration);
+        float targetSpeed = Mathf.Min(playerSpinAngle / duration, maxSpinAngle / duration);
+        float currentSpeed = Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg;
+        if (currentSpeed >= targetSpeed) return;
+
+        rb.angularVelocity = Vector3.up * (targetSpeed * Mathf.Deg2Rad * spinDirection);
+    }
+
+    private void ApplyPush(ImpulseReceiver target, Vector3 contactPoint)
+    {
+        if (target == null || target.LastImpulseSource == gameObject) return;
+
+        Vector3 radius = contactPoint - transform.position;
+        radius.y = 0f;
+        Vector3 tangent = Vector3.Cross(Vector3.up * spinDirection, radius.normalized);
+        target.ForceApplyImpulse(new Vector2(tangent.x, tangent.z), pushForce, gameObject);
     }
 
     private void OnDeath()
     {
         Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (health == null) return;
+        health.onDamaged.RemoveListener(OnDamaged);
+        health.onDeath.RemoveListener(OnDeath);
     }
 }

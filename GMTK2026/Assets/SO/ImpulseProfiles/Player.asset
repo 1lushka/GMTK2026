@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84a575b29a4a77043a222993f32df47a, type: 3}
-  m_Name: DefaultImpulseProfile
+  m_Name: Player
   m_EditorClassIdentifier: Assembly-CSharp::ImpulseProfile
   isMovable: 1
-  speedPerForce: 4
-  flightTime: 0.7
+  speedPerForce: 2
+  flightTime: 1
   decelerationTime: 0.2
   stopLockDuration: 0.5
-  maxSpeed: 40
-  impulseTransferMultiplier: 0.75
-  collisionSpeedMultiplier: 0.847
+  maxSpeed: 10
+  impulseTransferMultiplier: 1
+  collisionSpeedMultiplier: 0.6
   flightHeight: 0.2
   liftDuration: 0.08
   landingDuration: 0.12
