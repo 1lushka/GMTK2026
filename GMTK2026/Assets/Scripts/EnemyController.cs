@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -39,6 +39,8 @@ public class EnemyController : MonoBehaviour
     private bool isKnockedBack;
     private bool isHurt;
     private float lastAttackTime = -Mathf.Infinity;
+    private Coroutine knockbackCoroutine;
+    private Coroutine hurtCoroutine;
 
     private void Awake()
     {
@@ -58,7 +60,7 @@ public class EnemyController : MonoBehaviour
             health.onDeath.AddListener(OnDeath);
         }
 
-        // ���� ��������� ��� �������� �� ������, ����� �������� idle
+        // Инициализация партиклов
         if (hurtParticles != null) hurtParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         if (idleParticles != null) idleParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         PlayParticle(idleParticles);
@@ -113,7 +115,18 @@ public class EnemyController : MonoBehaviour
     {
         if (isKnockedBack) return;
         Alert();
-        StartCoroutine(KnockbackRoutine(force));
+
+        // Останавливаем текущий стан, если есть
+        if (hurtCoroutine != null)
+        {
+            StopCoroutine(hurtCoroutine);
+            hurtCoroutine = null;
+            isHurt = false;
+            agent.isStopped = false;
+            PlayParticle(idleParticles); // возвращаем idle
+        }
+
+        knockbackCoroutine = StartCoroutine(KnockbackRoutine(force));
     }
 
     private IEnumerator KnockbackRoutine(Vector3 force)
@@ -126,25 +139,34 @@ public class EnemyController : MonoBehaviour
         if (animator != null)
             animator.SetFloat(speedParamName, 0f);
 
-        // ��������� idle �� ����� ������������
         StopParticle(idleParticles);
+        StopParticle(hurtParticles);
 
         yield return new WaitForSeconds(knockbackDuration);
 
+        // Сбрасываем скорость перед возвратом к агенту
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
         agent.enabled = true;
         isKnockedBack = false;
+        knockbackCoroutine = null;
 
-        // �������� idle �������
-        PlayParticle(idleParticles);
+        // Если всё ещё жив, включаем idle
+        if (health.CurrentHealth > 0)
+            PlayParticle(idleParticles);
     }
 
     private void OnDamaged(int damage)
     {
         Alert();
+        // Если уже в нокбэке, не запускаем стан (урон всё равно нанесён)
         if (!isKnockedBack && !isHurt)
         {
-            StartCoroutine(HurtRoutine());
+            // Останавливаем предыдущий стан, если был (на всякий случай)
+            if (hurtCoroutine != null)
+                StopCoroutine(hurtCoroutine);
+            hurtCoroutine = StartCoroutine(HurtRoutine());
         }
     }
 
@@ -156,32 +178,37 @@ public class EnemyController : MonoBehaviour
         if (animator != null)
             animator.SetTrigger(hurtTriggerName);
 
-        // ������������� �� hurt-��������
         StopParticle(idleParticles);
         PlayParticle(hurtParticles);
 
         yield return new WaitForSeconds(hurtStunDuration);
 
-        // ��������� hurt-��������
         StopParticle(hurtParticles);
 
+        // Восстанавливаем движение, только если за время стана не были убиты или отброшены
         if (health != null && health.CurrentHealth > 0 && !isKnockedBack)
         {
             agent.isStopped = false;
-            // ���������� idle
             PlayParticle(idleParticles);
         }
         isHurt = false;
+        hurtCoroutine = null;
     }
 
     private void OnDeath()
     {
+        // Гарантированно сбрасываем все состояния
+        if (knockbackCoroutine != null) StopCoroutine(knockbackCoroutine);
+        if (hurtCoroutine != null) StopCoroutine(hurtCoroutine);
+        isKnockedBack = false;
+        isHurt = false;
+
         agent.enabled = false;
         rb.isKinematic = false;
         enabled = false;
+
         if (animator != null) animator.SetFloat(speedParamName, 0f);
 
-        // ������������� ��� ��������
         StopParticle(idleParticles);
         StopParticle(hurtParticles);
 
