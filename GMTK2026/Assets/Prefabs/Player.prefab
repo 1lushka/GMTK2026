@@ -362,7 +362,7 @@ MonoBehaviour:
   hitMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  rotationSpeed: 120
+  orbitLinearSpeed: 6
   collisionImpulseForce: 8
   releaseImpulseForce: 10
   playerCollisionRadius: 0.45

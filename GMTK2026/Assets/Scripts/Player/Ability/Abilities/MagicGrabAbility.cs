@@ -20,7 +20,7 @@ public sealed class MagicGrabAbility : ActiveAbility
     [SerializeField] private LayerMask hitMask = ~0;
 
     [Header("Orbit")]
-    [SerializeField] private float rotationSpeed = 120f;
+    [SerializeField, Min(0f)] private float orbitLinearSpeed = 6f;
     [SerializeField] private float collisionImpulseForce = 8f;
     [SerializeField] private float releaseImpulseForce = 10f;
     [SerializeField] private float playerCollisionRadius = 0.45f;
@@ -252,7 +252,10 @@ public sealed class MagicGrabAbility : ActiveAbility
 
     private Vector3 RotateOrbit(Vector3 offset)
     {
-        float angle = rotationSpeed * orbitDirection * Time.fixedDeltaTime;
+        float radius = offset.magnitude;
+        if (radius <= 0.0001f) return offset;
+
+        float angle = orbitLinearSpeed / radius * Mathf.Rad2Deg * orbitDirection * Time.fixedDeltaTime;
         return Quaternion.AngleAxis(angle, Vector3.up) * offset;
     }
 
