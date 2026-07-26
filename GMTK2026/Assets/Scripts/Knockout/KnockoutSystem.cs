@@ -317,7 +317,7 @@ namespace ForgettingBoxer.Knockout
 
         private void RefreshHUD()
         {
-            if (starCounterText != null) starCounterText.text = $"★  {stars}";
+            if (starCounterText != null) starCounterText.text = $"\u2605  {stars}";
             if (starCounterGroup != null)
             {
                 bool visible = stars > 0;

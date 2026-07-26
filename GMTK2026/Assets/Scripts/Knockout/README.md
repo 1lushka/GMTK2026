@@ -1,6 +1,8 @@
 # Knockout module
 
-Add one `KnockoutSystem` component to a scene and assign every field under **Scene references**. The module never creates its Canvas, counter, timer, status, or star visuals at runtime. The test scene contains an editable reference hierarchy named **Knockout UI (EDIT ME)**.
+Drag `Assets/Prefabs/Systems/KnockoutSystem.prefab` into a scene. Its Canvas, counter, timer, star template, interaction layer, fallback EventSystem, and all internal references are already configured. Assign only `Player`, `Disable While Knocked Out`, and the UnityEvents required by the scene. If the scene already has an EventSystem, the prefab disables its fallback automatically.
+
+The module never creates its gameplay UI at runtime. Open the prefab to edit the hierarchy named **Knockout UI (EDIT ME)**. Rebuild the default prefab through **Tools > Knockout > Create or Rebuild Production Prefab** when needed.
 
 Call the module from any script:
 
