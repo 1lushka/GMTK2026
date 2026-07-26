@@ -49,6 +49,7 @@ public sealed class MagicGrabAbility : ActiveAbility
     private Camera mainCamera;
     private Collider playerCollider;
     private Collider lastOrbitBlocker;
+    private Vector3 targetCollisionOffset;
 
     public bool IsActive => state != GrabState.Idle;
     public Transform LinkOrigin => linkOrigin != null ? linkOrigin : transform;
@@ -123,6 +124,10 @@ public sealed class MagicGrabAbility : ActiveAbility
     {
         targetReceiver = receiver;
         targetBody = receiver.GetComponent<Rigidbody>();
+        Collider targetCollider = receiver.GetComponent<Collider>();
+        targetCollisionOffset = targetCollider != null
+            ? targetCollider.bounds.center - targetBody.position
+            : Vector3.zero;
         anchorTransform = receiver.transform;
         orbitOffset = targetBody.position - rb.position;
         orbitOffset.y = 0f;
@@ -154,7 +159,8 @@ public sealed class MagicGrabAbility : ActiveAbility
 
         Vector3 desiredOffset = RotateOrbit(orbitOffset);
         Vector3 movement = rb.position + desiredOffset - targetBody.position;
-        if (HandleOrbitCollisions(targetBody.position, movement, targetReceiver))
+        Vector3 collisionOrigin = targetBody.position + targetCollisionOffset;
+        if (HandleOrbitCollisions(collisionOrigin, movement, targetReceiver))
         {
             orbitDirection *= -1f;
             RememberMotion(GetTargetOrbitMovement());
@@ -254,6 +260,7 @@ public sealed class MagicGrabAbility : ActiveAbility
 
         targetReceiver = null;
         targetBody = null;
+        targetCollisionOffset = Vector3.zero;
         anchorTransform = null;
         lastMotionDirection = Vector3.zero;
         lastImpulsedReceiver = null;

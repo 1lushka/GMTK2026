@@ -12,9 +12,8 @@ GameObject:
   - component: {fileID: 463267078640813686}
   - component: {fileID: 9165720185031289865}
   - component: {fileID: 6032619986750791837}
-  - component: {fileID: 9010475981697048061}
   - component: {fileID: 7191755144857074671}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BladeStandBlade (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110,19 +109,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.4247141, y: 0.040924907, z: 0.41634083}
   m_Center: {x: -0.70354724, y: 0.77147233, z: -0.018372752}
---- !u!114 &9010475981697048061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778748256702749094}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59fa94162f944506859eaed49c9f51ef, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  rotationSpeed: 180
 --- !u!114 &7191755144857074671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,6 +133,7 @@ GameObject:
   - component: {fileID: 156659873622654543}
   - component: {fileID: 3634120920779858746}
   - component: {fileID: 9162168121083765105}
+  - component: {fileID: 8468739686259972867}
   m_Layer: 0
   m_Name: BladeStand
   m_TagString: Untagged
@@ -224,6 +211,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8468739686259972867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2248160386664551349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59fa94162f944506859eaed49c9f51ef, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  rotationSpeed: -300
 --- !u!1 &2332173351462278028
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,9 +236,8 @@ GameObject:
   - component: {fileID: 3709404058171244614}
   - component: {fileID: 4723815172849556819}
   - component: {fileID: 5966276165048299552}
-  - component: {fileID: 6291670902306077039}
   - component: {fileID: 2421053792297612703}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BladeStandBlade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -334,19 +333,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.4247141, y: 0.040924907, z: 0.41634083}
   m_Center: {x: -0.70354724, y: 0.77147233, z: -0.018372752}
---- !u!114 &6291670902306077039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2332173351462278028}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59fa94162f944506859eaed49c9f51ef, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  rotationSpeed: 180
 --- !u!114 &2421053792297612703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -374,6 +360,7 @@ GameObject:
   - component: {fileID: 1890204901773663610}
   - component: {fileID: 2923776693413044277}
   - component: {fileID: 5642924800800362360}
+  - component: {fileID: 4859235642930611054}
   m_Layer: 0
   m_Name: BladeStand
   m_TagString: Untagged
@@ -463,7 +450,7 @@ CapsuleCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
@@ -498,7 +485,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &5642924800800362360
 MonoBehaviour:
@@ -522,3 +509,22 @@ MonoBehaviour:
   remainingFlightTime: 0
   remainingLockTime: 0
   drawVelocityGizmo: 1
+--- !u!114 &4859235642930611054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6724887033191908483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  maxHealth: 100
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamaged:
+    m_PersistentCalls:
+      m_Calls: []
