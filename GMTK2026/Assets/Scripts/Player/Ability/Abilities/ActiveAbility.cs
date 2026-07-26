@@ -42,6 +42,7 @@ public abstract class ActiveAbility : MonoBehaviour
 
         if (Input.GetKeyDown(activationKey) && CanActivate())
         {
+            abilityManager.NotifyAbilityActivated(this);
             Activate();
             cooldownTimer = cooldown;
         }

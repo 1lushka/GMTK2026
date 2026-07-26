@@ -1,11 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class PlayerAbilityManager : MonoBehaviour
 {
     [SerializeField] private List<AbilityDefinition> initialAbilities;
 
     private HashSet<string> activeAbilities = new HashSet<string>();
+
+    public event Action<ActiveAbility> AbilityActivated;
 
     void Awake()
     {
@@ -39,4 +42,9 @@ public class PlayerAbilityManager : MonoBehaviour
     public void EnableAbility(AbilityDefinition ability) { if (ability != null) EnableAbility(ability.abilityId); }
     public void DisableAbility(AbilityDefinition ability) { if (ability != null) DisableAbility(ability.abilityId); }
     public bool HasAbility(AbilityDefinition ability) => ability != null && HasAbility(ability.abilityId);
+
+    public void NotifyAbilityActivated(ActiveAbility ability)
+    {
+        AbilityActivated?.Invoke(ability);
+    }
 }

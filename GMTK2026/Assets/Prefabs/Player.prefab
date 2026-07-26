@@ -180,6 +180,7 @@ GameObject:
   - component: {fileID: 7717234317880383111}
   - component: {fileID: 584660864332301281}
   - component: {fileID: 4141000419846240634}
+  - component: {fileID: 7293847561029384756}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -272,6 +273,7 @@ MonoBehaviour:
   initialAbilities:
   - {fileID: 11400000, guid: 68c751bc7ada62d4fbb648b2d0462d62, type: 2}
   - {fileID: 11400000, guid: 1cb22d1a2d3aff24391f5b6c892537c4, type: 2}
+  - {fileID: 11400000, guid: bf1348088f844daa9946eec53b67b382, type: 2}
 --- !u!114 &7717234317880383111
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,6 +339,33 @@ MonoBehaviour:
   rotationSpeed: 150
   pushForce: 0.3
   punchCollider: {fileID: 2696159624825845082}
+--- !u!114 &7293847561029384756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4233913195724875108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae813f1ba8134928a2bebc0347811b03, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  abilityDefinition: {fileID: 11400000, guid: bf1348088f844daa9946eec53b67b382, type: 2}
+  activationKey: 101
+  cooldown: 0.5
+  glovePrefab: {fileID: 11400000, guid: c21756566da9440ea1d47a01e2f284a2, type: 3}
+  gloveProjectileSpeed: 15
+  gloveMaxDistance: 12
+  gloveSpawnDistance: 0.6
+  collisionRadius: 0.2
+  hitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rotationSpeed: 120
+  collisionImpulseForce: 8
+  releaseImpulseForce: 10
+  linkOrigin: {fileID: 0}
 --- !u!1 &5185497353606135062
 GameObject:
   m_ObjectHideFlags: 0

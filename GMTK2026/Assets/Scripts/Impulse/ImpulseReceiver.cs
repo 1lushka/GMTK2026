@@ -31,6 +31,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     private Rigidbody body;
     private Vector2 decelerationStartVelocity;
     private float decelerationElapsed;
+    private bool externallyControlled;
 
     public event Action<ImpulseInfo> ImpulseReceived;
 
@@ -42,6 +43,7 @@ public sealed class ImpulseReceiver : MonoBehaviour
     public bool IsMoving => currentState == State.Flying || currentState == State.Decelerating;
     public bool IsTemporaryLocked => currentState == State.TemporaryLocked;
     public bool IsMovable => profile != null && profile.IsMovable;
+    public bool CanBeExternallyMoved => enabled && IsMovable && !IsTemporaryLocked;
 
     private void Awake()
     {
@@ -82,8 +84,28 @@ public sealed class ImpulseReceiver : MonoBehaviour
         currentState = State.Flying;
     }
 
+    public bool BeginExternalControl()
+    {
+        if (!CanBeExternallyMoved) return false;
+
+        externallyControlled = true;
+        currentVelocity = Vector2.zero;
+        currentSpeed = 0f;
+        remainingFlightTime = 0f;
+        currentState = State.Idle;
+        body.linearVelocity = Vector3.zero;
+        return true;
+    }
+
+    public void EndExternalControl()
+    {
+        externallyControlled = false;
+    }
+
     private void FixedUpdate()
     {
+        if (externallyControlled) return;
+
         float deltaTime = Time.fixedDeltaTime;
 
         switch (currentState)
