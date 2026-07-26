@@ -4,17 +4,22 @@ public class Turret : MonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private HealthComponent health;
+    [SerializeField] private Transform turretBase;      
+    [SerializeField] private Animator turretAnimator;     
 
     [Header("Shooting")]
     [SerializeField] private GameObject shurikenPrefab;
-    [SerializeField] private float fireInterval = 1.5f;       
-    [SerializeField] private float shurikenSpeed = 12f;     
-    [SerializeField] private float attackRange = 15f;         
-    [SerializeField] private Transform firePoint;            
+    [SerializeField] private float fireInterval = 1.5f;
+    [SerializeField] private float shurikenSpeed = 12f;
+    [SerializeField] private float attackRange = 15f;
+    [SerializeField] private Transform firePoint;
 
     [Header("Rotation")]
     [SerializeField] private bool rotateTowardsPlayer = true;
     [SerializeField] private float rotationSpeed = 5f;
+
+    [Header("Animation")]
+    [SerializeField] private string fireTriggerName = "Fire";
 
     private Transform player;
     private float timer;
@@ -41,12 +46,15 @@ public class Turret : MonoBehaviour
         float distance = Vector3.Distance(transform.position, player.position);
         if (distance > attackRange) return;
 
-        if (rotateTowardsPlayer)
+        if (rotateTowardsPlayer && turretBase != null)
         {
-            Vector3 direction = (player.position - transform.position).normalized;
+            Vector3 direction = (player.position - turretBase.position).normalized;
             direction.y = 0f;
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                turretBase.rotation = Quaternion.Slerp(turretBase.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
         }
 
         timer -= Time.deltaTime;
@@ -76,11 +84,12 @@ public class Turret : MonoBehaviour
             Rigidbody rb = shurikenObj.GetComponent<Rigidbody>();
             if (rb != null) rb.linearVelocity = direction * shurikenSpeed;
         }
+
+        if (turretAnimator != null)
+            turretAnimator.SetTrigger(fireTriggerName);
     }
 
-    private void OnDamaged(int damage)
-    {
-    }
+    private void OnDamaged(int damage) { }
 
     private void OnDeath()
     {
