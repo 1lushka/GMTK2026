@@ -1,6 +1,4 @@
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
 
 public class PunchComboAbility : ActiveAbility
 {
@@ -16,6 +14,8 @@ public class PunchComboAbility : ActiveAbility
     [SerializeField] private float pushForce = 10f;
     [SerializeField] Transform punchCollider;
 
+    private PunchComboTrigger punchTrigger;
+
 
     protected override void Activate()
     {
@@ -24,6 +24,7 @@ public class PunchComboAbility : ActiveAbility
         animator.SetBool(comboBool, true);
         isPunching = true;
         controller.ActivateRotation(false);
+        punchTrigger.BeginAttack();
         punchCollider.gameObject.SetActive(true);
         Vector3 direction = LookAtMouse();
         Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -32,9 +33,14 @@ public class PunchComboAbility : ActiveAbility
 
     protected void Deactivate()
     {
+        if (!isPunching) return;
+
         animator.SetBool(comboBool, false);
         isPunching = false;
         controller.ActivateRotation(true);
+        Vector3 attackDirection = punchCollider.position - transform.position;
+        attackDirection.y = 0f;
+        punchTrigger.FinalHit(attackDirection);
         punchCollider.gameObject.SetActive(false);
 
     }
@@ -44,6 +50,18 @@ public class PunchComboAbility : ActiveAbility
     {
        
         base.Start();
+
+        if (punchCollider == null)
+        {
+            Debug.LogError("PunchComboAbility: punchCollider is not assigned!");
+            enabled = false;
+            return;
+        }
+
+        punchTrigger = punchCollider.GetComponent<PunchComboTrigger>();
+        if (punchTrigger == null)
+            punchTrigger = punchCollider.gameObject.AddComponent<PunchComboTrigger>();
+        punchCollider.gameObject.SetActive(false);
 
         if (useAnimator && controller != null)
         {
@@ -117,5 +135,11 @@ public class PunchComboAbility : ActiveAbility
     protected override bool CanActivate()
     {
         return (cooldownTimer <= 0);
+    }
+
+    private void OnDisable()
+    {
+        if (isPunching)
+            Deactivate();
     }
 }
