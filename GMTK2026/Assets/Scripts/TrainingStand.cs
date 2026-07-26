@@ -67,20 +67,13 @@ public class TrainingStand : MonoBehaviour
                     playerSpinCoroutine = StartCoroutine(PlayerSpinRoutine(targetAngularSpeed, playerSpinDuration));
                 }
             }
-
-            // Отбрасываем игрока независимо от того, запустили вращение или нет (физика могла уже сработать)
-            Rigidbody playerRb = other.attachedRigidbody;
-            if (playerRb == null) playerRb = other.GetComponentInParent<Rigidbody>();
-            //ApplyPush(playerRb, contactPoint);
         }
         // Во время вращения (своя угловая скорость или от физики) наносим урон и отбрасываем
         else if (Mathf.Abs(rb.angularVelocity.y) * Mathf.Rad2Deg > spinThreshold)
         {
             if (other.CompareTag("Player"))
             {
-                Rigidbody playerRb = other.attachedRigidbody;
-                if (playerRb == null) playerRb = other.GetComponentInParent<Rigidbody>();
-                ApplyPush(playerRb, contactPoint);
+                ApplyPush(other.GetComponentInParent<ImpulseReceiver>());
             }
             else
             {
@@ -88,9 +81,7 @@ public class TrainingStand : MonoBehaviour
                 if (targetHealth != null)
                     targetHealth.TakeDamage(damageToEnemies);
 
-                Rigidbody targetRb = other.attachedRigidbody;
-                if (targetRb == null) targetRb = other.GetComponentInParent<Rigidbody>();
-                ApplyPush(targetRb, contactPoint);
+                ApplyPush(other.GetComponentInParent<ImpulseReceiver>());
             }
         }
     }
@@ -127,14 +118,13 @@ public class TrainingStand : MonoBehaviour
         // угловую скорость не обнуляем, пусть трение само гасит
     }
 
-    private void ApplyPush(Rigidbody targetRb, Vector3 contactPoint)
+    private void ApplyPush(ImpulseReceiver target)
     {
-        if (targetRb != null && !targetRb.isKinematic)
-        {
-            Vector3 pushDir = (targetRb.position - transform.position).normalized;
-            pushDir.y = 0f;
-            targetRb.AddForce(pushDir * pushForce, ForceMode.Impulse);
-        }
+        if (target == null) return;
+
+        Vector3 offset = target.transform.position - transform.position;
+        Vector2 direction = new Vector2(offset.x, offset.z);
+        target.ApplyImpulse(direction, pushForce, gameObject);
     }
 
     private void OnDeath()

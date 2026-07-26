@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ExplosiveProjectile : MonoBehaviour
@@ -34,38 +35,16 @@ public class ExplosiveProjectile : MonoBehaviour
             Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
+        var affectedReceivers = new HashSet<ImpulseReceiver>();
         foreach (Collider hit in colliders)
         {
-            // 1. »грок Ц отбрасывание (без урона)
-            TopDownController playerCtrl = hit.GetComponent<TopDownController>();
-            if (playerCtrl != null)
-            {
-                Vector3 dir = (playerCtrl.transform.position - transform.position).normalized;
-                dir.y = 0f;
-                if (dir.sqrMagnitude < 0.001f) dir = Random.insideUnitSphere;
-                dir.y = 0f;
-                dir.Normalize();
-                playerCtrl.AddImpulse(dir * explosionForce);
-                continue;
-            }
+            ImpulseReceiver receiver = hit.GetComponentInParent<ImpulseReceiver>();
+            if (receiver == null || !affectedReceivers.Add(receiver)) continue;
 
-            TrainingStand stand = hit.GetComponentInParent<TrainingStand>();
-            if (stand != null)
-            {
-                stand.ApplyImpulseSpin(explosionForce, transform.position);
-                continue;
-            }
-
-            Rigidbody rb = hit.attachedRigidbody;
-            if (rb != null)
-            {
-                Vector3 forceDir = (rb.position - transform.position).normalized;
-                forceDir.y = 0f;
-                if (forceDir.sqrMagnitude < 0.001f) forceDir = Random.insideUnitSphere;
-                forceDir.y = 0f;
-                forceDir.Normalize();
-                rb.AddForce(forceDir * explosionForce, ForceMode.Impulse);
-            }
+            Vector3 offset = receiver.transform.position - transform.position;
+            Vector2 direction = new Vector2(offset.x, offset.z);
+            if (direction.sqrMagnitude <= 0.0001f) direction = Random.insideUnitCircle;
+            receiver.ApplyImpulse(direction, explosionForce, gameObject);
         }
 
         Destroy(gameObject);
