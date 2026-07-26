@@ -107,8 +107,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.4247141, y: 0.040924907, z: 0.41634083}
-  m_Center: {x: -0.70354724, y: 0.77147233, z: -0.018372752}
+  m_Size: {x: 1.4247141, y: 1, z: 0.41634083}
+  m_Center: {x: -0.70354724, y: 0.5, z: -0.018372752}
 --- !u!114 &7191755144857074671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,9 +119,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1716eb87bfa4f43918d1a7a744a1cf2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  damage: 1
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 3
 --- !u!1 &2248160386664551349
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,8 +221,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59fa94162f944506859eaed49c9f51ef, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   rotationSpeed: -300
 --- !u!1 &2332173351462278028
 GameObject:
@@ -331,8 +331,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.4247141, y: 0.040924907, z: 0.41634083}
-  m_Center: {x: -0.70354724, y: 0.77147233, z: -0.018372752}
+  m_Size: {x: 1.4247141, y: 1, z: 0.41634083}
+  m_Center: {x: -0.70354724, y: 0.5, z: -0.018372752}
 --- !u!114 &2421053792297612703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -343,9 +343,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1716eb87bfa4f43918d1a7a744a1cf2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  damage: 1
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 3
 --- !u!1 &6724887033191908483
 GameObject:
   m_ObjectHideFlags: 0
@@ -497,8 +497,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb425ec88e3224349ae8d7073354d64a, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 1634f4f0beed448c90aa94ab1e72312d, type: 2}
   onImpulseReceived:
     m_PersistentCalls:
@@ -519,8 +519,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a44adf2c77d5cfd4eb94aa75824d2228, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   maxHealth: 100
   onDeath:
     m_PersistentCalls:

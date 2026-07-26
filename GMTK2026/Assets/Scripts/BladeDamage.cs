@@ -24,12 +24,11 @@ public sealed class BladeDamage : MonoBehaviour
                         (targetBody != null && targetBody.CompareTag("Player"));
         if (isPlayer)
         {
-            if (KnockoutAPI.TakeDamage(damage) || !allowHealthFallback) return;
+            
+            KnockoutAPI.TakeDamage(damage);
+            
 
-            HealthComponent playerHealth = other.GetComponentInParent<HealthComponent>();
-            if (playerHealth != null)
-                playerHealth.TakeDamage(damage);
-            return;
+            
         }
 
         if (allowHealthFallback)

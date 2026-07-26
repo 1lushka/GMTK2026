@@ -217,7 +217,7 @@ namespace ForgettingBoxer.Knockout
             SetPlayerKnockedOut(false);
             RestoreWorld();
             if (timerText != null) timerText.gameObject.SetActive(false);
-            if (statusText != null) statusText.text = $"BACK UP!  INVULNERABLE {invulnerabilityDuration:0.#}s";
+            if (statusText != null) statusText.text = $" ";
             RefreshHUD();
             onStarCountChanged?.Invoke();
             onRecovered?.Invoke();
@@ -317,7 +317,7 @@ namespace ForgettingBoxer.Knockout
 
         private void RefreshHUD()
         {
-            if (starCounterText != null) starCounterText.text = $"\u2605  {stars}";
+            if (starCounterText != null) starCounterText.text = $"{stars}";
             if (starCounterGroup != null)
             {
                 bool visible = stars > 0;
