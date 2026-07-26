@@ -195,16 +195,16 @@ public class EnemyController : MonoBehaviour
 
     private void Attack()
     {
+        lastAttackTime = Time.time;
+
         if (animator != null)
             animator.SetTrigger(attackTriggerName);
 
-        HealthComponent playerHealth = player.GetComponent<HealthComponent>();
+        if (ForgettingBoxer.Knockout.KnockoutAPI.TakeDamage(attackDamage)) return;
+
+        HealthComponent playerHealth = player.GetComponentInChildren<HealthComponent>();
         if (playerHealth != null)
-        {
-            if (!ForgettingBoxer.Knockout.KnockoutAPI.TakeDamage(attackDamage))
-                playerHealth.TakeDamage(attackDamage);
-            lastAttackTime = Time.time;
-        }
+            playerHealth.TakeDamage(attackDamage);
     }
 
     public void ApplyImpulse(Vector3 force)
