@@ -48,6 +48,7 @@ public sealed class MagicGrabAbility : ActiveAbility
     private KnockoutSystem knockoutSystem;
     private Camera mainCamera;
     private Collider playerCollider;
+    private Collider lastOrbitBlocker;
 
     public bool IsActive => state != GrabState.Idle;
     public Transform LinkOrigin => linkOrigin != null ? linkOrigin : transform;
@@ -156,12 +157,13 @@ public sealed class MagicGrabAbility : ActiveAbility
         if (HandleOrbitCollisions(targetBody.position, movement, targetReceiver))
         {
             orbitDirection *= -1f;
-            RememberMotion(-movement);
+            RememberMotion(GetTargetOrbitMovement());
             FaceAnchor(targetBody.position);
             return;
         }
 
         targetBody.MovePosition(targetBody.position + movement);
+        lastOrbitBlocker = null;
         orbitOffset = desiredOffset;
         RememberMotion(movement);
         FaceAnchor(targetBody.position + movement);
@@ -179,12 +181,13 @@ public sealed class MagicGrabAbility : ActiveAbility
         if (!CanMovePlayer(movement, desiredPosition))
         {
             orbitDirection *= -1f;
-            RememberMotion(-movement);
+            RememberMotion(GetPlayerOrbitMovement(anchorPosition));
             FaceAnchor(anchorPosition);
             return;
         }
 
         rb.MovePosition(rb.position + movement);
+        lastOrbitBlocker = null;
         orbitOffset = desiredOffset;
         RememberMotion(movement);
         FaceAnchor(anchorPosition);
@@ -203,7 +206,12 @@ public sealed class MagicGrabAbility : ActiveAbility
             ImpulseReceiver other = hitCollider.GetComponentInParent<ImpulseReceiver>();
             if (hitCollider.transform.root == transform.root || other == movingReceiver) continue;
 
-            if (other == null || !other.CanBeExternallyMoved) return true;
+            if (other == null || !other.CanBeExternallyMoved)
+            {
+                if (hitCollider == lastOrbitBlocker) continue;
+                lastOrbitBlocker = hitCollider;
+                return true;
+            }
             ApplyCollisionImpulse(other, movement);
         }
 
@@ -223,6 +231,7 @@ public sealed class MagicGrabAbility : ActiveAbility
     public void CancelGrab(bool applyInertia)
     {
         GrabState previousState = state;
+        Vector3 releaseDirection = GetReleaseDirection(previousState);
         state = GrabState.Idle;
 
         if (projectile != null) Destroy(projectile.gameObject);
@@ -232,7 +241,7 @@ public sealed class MagicGrabAbility : ActiveAbility
         {
             targetReceiver.EndExternalControl();
             if (applyInertia && previousState == GrabState.TargetOrbitingPlayer)
-                targetReceiver.ApplyImpulse(ToVector2(lastMotionDirection), releaseImpulseForce, gameObject);
+                targetReceiver.ApplyImpulse(ToVector2(releaseDirection), releaseImpulseForce, gameObject);
         }
 
         if (controller != null)
@@ -240,7 +249,7 @@ public sealed class MagicGrabAbility : ActiveAbility
             controller.enableMovement = true;
             controller.ActivateRotation(true);
             if (applyInertia && previousState == GrabState.PlayerOrbitingAnchor)
-                controller.AddImpulse(lastMotionDirection * releaseImpulseForce);
+                controller.AddImpulse(releaseDirection * releaseImpulseForce);
         }
 
         targetReceiver = null;
@@ -248,6 +257,20 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorTransform = null;
         lastMotionDirection = Vector3.zero;
         lastImpulsedReceiver = null;
+        lastOrbitBlocker = null;
+    }
+
+    private Vector3 GetReleaseDirection(GrabState previousState)
+    {
+        if (lastMotionDirection.sqrMagnitude > 0.0001f)
+            return lastMotionDirection;
+
+        if (previousState != GrabState.TargetOrbitingPlayer &&
+            previousState != GrabState.PlayerOrbitingAnchor)
+            return Vector3.zero;
+
+        Vector3 tangent = Vector3.Cross(Vector3.up, orbitOffset) * orbitDirection;
+        return tangent.sqrMagnitude > 0.0001f ? tangent.normalized : Vector3.zero;
     }
 
     private Vector3 RotateOrbit(Vector3 offset)
@@ -268,11 +291,28 @@ public sealed class MagicGrabAbility : ActiveAbility
             movement / distance, orbitHits, distance, hitMask, QueryTriggerInteraction.Ignore);
         for (int i = 0; i < count; i++)
         {
-            if (orbitHits[i].collider.transform.root != transform.root)
-                return false;
+            Collider hitCollider = orbitHits[i].collider;
+            if (hitCollider.transform.root == transform.root || hitCollider == lastOrbitBlocker)
+                continue;
+
+            lastOrbitBlocker = hitCollider;
+            return false;
         }
 
         return HasGroundAt(desiredPosition);
+    }
+
+    private Vector3 GetTargetOrbitMovement()
+    {
+        Vector3 reflectedOffset = RotateOrbit(orbitOffset);
+        return rb.position + reflectedOffset - targetBody.position;
+    }
+
+    private Vector3 GetPlayerOrbitMovement(Vector3 anchorPosition)
+    {
+        Vector3 reflectedPosition = anchorPosition + RotateOrbit(orbitOffset);
+        reflectedPosition.y = playerOrbitHeight;
+        return reflectedPosition - rb.position;
     }
 
     private void CachePlayerCollisionRadius()
