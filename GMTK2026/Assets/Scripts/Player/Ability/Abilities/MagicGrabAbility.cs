@@ -23,11 +23,14 @@ public sealed class MagicGrabAbility : ActiveAbility
     [SerializeField] private float rotationSpeed = 120f;
     [SerializeField] private float collisionImpulseForce = 8f;
     [SerializeField] private float releaseImpulseForce = 10f;
+    [SerializeField] private float playerCollisionRadius = 0.45f;
+    [SerializeField] private float groundCheckDistance = 2f;
 
     [Header("Optional Visual Hook")]
     [SerializeField] private Transform linkOrigin;
 
     private readonly RaycastHit[] orbitHits = new RaycastHit[12];
+    private readonly RaycastHit[] groundHits = new RaycastHit[8];
 
     private GrabState state;
     private MagicGrabProjectile projectile;
@@ -39,9 +42,12 @@ public sealed class MagicGrabAbility : ActiveAbility
     private Vector3 lastMotionDirection;
     private ImpulseReceiver lastImpulsedReceiver;
     private float nextCollisionImpulseTime;
+    private float orbitDirection = -1f;
+    private float playerOrbitHeight;
     private HealthComponent health;
     private KnockoutSystem knockoutSystem;
     private Camera mainCamera;
+    private Collider playerCollider;
 
     public bool IsActive => state != GrabState.Idle;
     public Transform LinkOrigin => linkOrigin != null ? linkOrigin : transform;
@@ -52,6 +58,8 @@ public sealed class MagicGrabAbility : ActiveAbility
         base.Start();
         mainCamera = Camera.main;
         health = GetComponent<HealthComponent>();
+        playerCollider = GetComponentInChildren<Collider>();
+        CachePlayerCollisionRadius();
         knockoutSystem = KnockoutSystem.Instance;
         SubscribeToInterruptions();
     }
@@ -117,6 +125,8 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorTransform = receiver.transform;
         orbitOffset = targetBody.position - rb.position;
         orbitOffset.y = 0f;
+        orbitDirection = -1f;
+        controller.ActivateRotation(false);
         state = GrabState.TargetOrbitingPlayer;
     }
 
@@ -126,7 +136,12 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorLocalPoint = anchor.InverseTransformPoint(worldPoint);
         orbitOffset = rb.position - worldPoint;
         orbitOffset.y = 0f;
+        orbitDirection = -1f;
+        playerOrbitHeight = rb.position.y;
         controller.enableMovement = false;
+        controller.ActivateRotation(false);
+        controller.SetVelocity(Vector3.zero);
+        rb.linearVelocity = Vector3.zero;
         state = GrabState.PlayerOrbitingAnchor;
     }
 
@@ -149,16 +164,30 @@ public sealed class MagicGrabAbility : ActiveAbility
         targetBody.MovePosition(targetBody.position + movement);
         orbitOffset = desiredOffset;
         RememberMotion(movement);
+        FaceAnchor(targetBody.position + movement);
     }
 
     private void OrbitPlayerAroundAnchor()
     {
         Vector3 anchorPosition = GetAnchorPosition();
+        rb.linearVelocity = Vector3.zero;
         Vector3 desiredOffset = RotateClockwise(orbitOffset);
-        Vector3 movement = anchorPosition + desiredOffset - rb.position;
+        Vector3 desiredPosition = anchorPosition + desiredOffset;
+        desiredPosition.y = playerOrbitHeight;
+        Vector3 movement = desiredPosition - rb.position;
+
+        if (!CanMovePlayer(movement, desiredPosition))
+        {
+            orbitDirection *= -1f;
+            lastMotionDirection = Vector3.zero;
+            FaceAnchor(anchorPosition);
+            return;
+        }
+
         rb.MovePosition(rb.position + movement);
         orbitOffset = desiredOffset;
         RememberMotion(movement);
+        FaceAnchor(anchorPosition);
     }
 
     private bool HandleOrbitCollisions(Vector3 origin, Vector3 movement, ImpulseReceiver movingReceiver)
@@ -197,7 +226,11 @@ public sealed class MagicGrabAbility : ActiveAbility
         anchorLocalPoint = anchorTransform.InverseTransformPoint(targetBody.position);
         orbitOffset = rb.position - targetBody.position;
         orbitOffset.y = 0f;
+        playerOrbitHeight = rb.position.y;
         controller.enableMovement = false;
+        controller.ActivateRotation(false);
+        controller.SetVelocity(Vector3.zero);
+        rb.linearVelocity = Vector3.zero;
         state = GrabState.PlayerOrbitingAnchor;
     }
 
@@ -219,6 +252,7 @@ public sealed class MagicGrabAbility : ActiveAbility
         if (controller != null)
         {
             controller.enableMovement = true;
+            controller.ActivateRotation(true);
             if (applyInertia && previousState == GrabState.PlayerOrbitingAnchor)
                 controller.AddImpulse(lastMotionDirection * releaseImpulseForce);
         }
@@ -232,7 +266,54 @@ public sealed class MagicGrabAbility : ActiveAbility
 
     private Vector3 RotateClockwise(Vector3 offset)
     {
-        return Quaternion.AngleAxis(rotationSpeed * Time.fixedDeltaTime, Vector3.down) * offset;
+        float angle = rotationSpeed * orbitDirection * Time.fixedDeltaTime;
+        return Quaternion.AngleAxis(angle, Vector3.up) * offset;
+    }
+
+    private bool CanMovePlayer(Vector3 movement, Vector3 desiredPosition)
+    {
+        float distance = movement.magnitude;
+        if (distance <= 0.0001f) return true;
+
+        int count = Physics.SphereCastNonAlloc(rb.position, playerCollisionRadius,
+            movement / distance, orbitHits, distance, hitMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            if (orbitHits[i].collider.transform.root != transform.root)
+                return false;
+        }
+
+        return HasGroundAt(desiredPosition);
+    }
+
+    private void CachePlayerCollisionRadius()
+    {
+        if (playerCollider == null) return;
+
+        Vector3 extents = playerCollider.bounds.extents;
+        playerCollisionRadius = Mathf.Max(playerCollisionRadius, extents.x, extents.z);
+    }
+
+    private bool HasGroundAt(Vector3 position)
+    {
+        Vector3 origin = position + Vector3.up * 0.25f;
+        int count = Physics.RaycastNonAlloc(origin, Vector3.down, groundHits,
+            groundCheckDistance, hitMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            if (groundHits[i].collider.transform.root != transform.root)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void FaceAnchor(Vector3 anchorPosition)
+    {
+        Vector3 direction = anchorPosition - rb.position;
+        direction.y = 0f;
+        if (direction.sqrMagnitude > 0.0001f)
+            rb.MoveRotation(Quaternion.LookRotation(direction));
     }
 
     private void RememberMotion(Vector3 movement)

@@ -365,6 +365,8 @@ MonoBehaviour:
   rotationSpeed: 120
   collisionImpulseForce: 8
   releaseImpulseForce: 10
+  playerCollisionRadius: 0.45
+  groundCheckDistance: 2
   linkOrigin: {fileID: 0}
 --- !u!1 &5185497353606135062
 GameObject:
