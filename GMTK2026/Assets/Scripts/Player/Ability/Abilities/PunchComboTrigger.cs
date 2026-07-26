@@ -35,6 +35,7 @@ public class PunchComboTrigger : MonoBehaviour
         public PunchComboTargetMotion Motion;
         public ImpulseReceiver ImpulseReceiver;
         public TrainingStand TrainingStand;
+        public EnemyController Enemy;
         public bool HasExternalControl;
         public float AccumulatedDamage;
     }
@@ -76,11 +77,15 @@ public class PunchComboTrigger : MonoBehaviour
                     target.ImpulseReceiver.EndExternalControl();
                 Vector2 impulseDirection = new Vector2(direction.x, direction.z);
                 target.ImpulseReceiver.ApplyImpulse(impulseDirection, impulseDistance, transform.root.gameObject);
+                if (target.Enemy != null)
+                    target.Enemy.SetComboStunned(false);
             }
             else
             {
                 if (target.Motion != null)
                     target.Motion.ReturnToGround(returnDuration, returnEase);
+                if (target.Enemy != null)
+                    target.Enemy.SetComboStunned(false);
             }
         }
 
@@ -149,12 +154,15 @@ public class PunchComboTrigger : MonoBehaviour
             {
                 Health = health,
                 Motion = motion,
-                ImpulseReceiver = health.GetComponent<ImpulseReceiver>()
+                ImpulseReceiver = health.GetComponent<ImpulseReceiver>(),
+                Enemy = health.GetComponent<EnemyController>()
             };
             if (target.ImpulseReceiver != null)
                 target.HasExternalControl = target.ImpulseReceiver.BeginExternalControl();
             targets.Add(health, target);
             health.SetStunned(true);
+            if (target.Enemy != null)
+                target.Enemy.SetComboStunned(true);
             motion.Lift(liftHeight, liftDuration, liftEase, hoverAmplitude, hoverPeriod);
         }
 
@@ -177,6 +185,8 @@ public class PunchComboTrigger : MonoBehaviour
     {
         if (target.Health != null)
             target.Health.SetStunned(false);
+        if (target.Enemy != null)
+            target.Enemy.SetComboStunned(false);
         if (target.HasExternalControl && target.ImpulseReceiver != null)
             target.ImpulseReceiver.EndExternalControl();
         if (target.Motion != null)

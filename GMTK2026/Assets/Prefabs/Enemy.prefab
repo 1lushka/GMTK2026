@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2838028737294002323}
   - component: {fileID: 3221355540801349824}
   - component: {fileID: 3621974592799286936}
+  - component: {fileID: 910000000000000101}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -81,6 +82,7 @@ MonoBehaviour:
   rb: {fileID: 8519378447867767717}
   health: {fileID: 2838028737294002323}
   animator: {fileID: 0}
+  impulseReceiver: {fileID: 910000000000000101}
   stoppingDistance: 1
   attackDamage: 1
   attackCooldown: 0.5
@@ -89,6 +91,28 @@ MonoBehaviour:
   attackTriggerName: Attack
   animationMoveThreshold: 0.1
   knockbackDuration: 0.4
+--- !u!114 &910000000000000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2280657535588475639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb425ec88e3224349ae8d7073354d64a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  profile: {fileID: 11400000, guid: 1634f4f0beed448c90aa94ab1e72312d, type: 2}
+  onImpulseReceived:
+    m_PersistentCalls:
+      m_Calls: []
+  currentState: 0
+  currentVelocity: {x: 0, y: 0}
+  currentSpeed: 0
+  remainingFlightTime: 0
+  remainingLockTime: 0
+  drawVelocityGizmo: 1
 --- !u!114 &2838028737294002323
 MonoBehaviour:
   m_ObjectHideFlags: 0

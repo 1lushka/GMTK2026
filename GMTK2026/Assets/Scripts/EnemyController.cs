@@ -9,6 +9,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private HealthComponent health;
     [SerializeField] private Animator animator;
+    [SerializeField] private ImpulseReceiver impulseReceiver;
 
     [Header("Movement")]
     [SerializeField] private float stoppingDistance = 0.2f;
@@ -38,9 +39,13 @@ public class EnemyController : MonoBehaviour
     private bool isAlerted;
     private bool isKnockedBack;
     private bool isHurt;
+    private bool comboStunned;
+    private bool impulseFlying;
     private float lastAttackTime = -Mathf.Infinity;
     private Coroutine knockbackCoroutine;
     private Coroutine hurtCoroutine;
+    private Quaternion standingVisualRotation;
+    private bool controlsFlightVisual;
 
     private void Awake()
     {
@@ -50,6 +55,8 @@ public class EnemyController : MonoBehaviour
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (health == null) health = GetComponent<HealthComponent>();
         if (animator == null) animator = GetComponentInChildren<Animator>();
+        if (impulseReceiver == null) impulseReceiver = GetComponent<ImpulseReceiver>();
+        if (animator != null) standingVisualRotation = animator.transform.localRotation;
 
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         agent.stoppingDistance = stoppingDistance;
@@ -68,7 +75,9 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        if (isKnockedBack || isHurt || (health != null && health.CurrentHealth <= 0)) return;
+        UpdateImpulseState();
+        if (comboStunned || impulseFlying || isKnockedBack || isHurt ||
+            (health != null && health.CurrentHealth <= 0)) return;
 
         UpdateAnimation();
 
@@ -81,6 +90,92 @@ public class EnemyController : MonoBehaviour
                 Attack();
             }
         }
+    }
+
+    private void LateUpdate()
+    {
+        if (animator == null || impulseReceiver == null) return;
+
+        Vector2 velocity = impulseReceiver.CurrentVelocity;
+        if (impulseReceiver.IsMoving && velocity.sqrMagnitude > 0.0001f)
+        {
+            Vector3 movement = new Vector3(velocity.x, 0f, velocity.y).normalized;
+            animator.transform.rotation = Quaternion.LookRotation(-movement, Vector3.up);
+            controlsFlightVisual = true;
+        }
+        else if (controlsFlightVisual)
+        {
+            animator.transform.localRotation = standingVisualRotation;
+            controlsFlightVisual = false;
+        }
+    }
+
+    public void SetComboStunned(bool stunned)
+    {
+        if (comboStunned == stunned) return;
+
+        comboStunned = stunned;
+        if (stunned)
+            PlayHurtFeedback();
+        UpdateAiLock();
+    }
+
+    private void UpdateImpulseState()
+    {
+        bool isFlying = impulseReceiver != null && (impulseReceiver.IsMoving || impulseReceiver.IsAirborne);
+        if (impulseFlying == isFlying) return;
+
+        impulseFlying = isFlying;
+        if (isFlying)
+            PlayHurtFeedback();
+        UpdateAiLock();
+    }
+
+    private void UpdateAiLock()
+    {
+        bool locked = comboStunned || impulseFlying;
+        if (health != null)
+            health.SetStunned(locked);
+        if (locked)
+        {
+            StopControlCoroutines();
+            if (agent.enabled)
+                agent.enabled = false;
+            if (animator != null)
+                animator.SetFloat(speedParamName, 0f);
+            return;
+        }
+
+        if (health != null && health.CurrentHealth > 0 && !agent.enabled)
+            agent.enabled = true;
+        isHurt = false;
+        isKnockedBack = false;
+        PlayParticle(idleParticles);
+    }
+
+    private void StopControlCoroutines()
+    {
+        if (knockbackCoroutine != null)
+        {
+            StopCoroutine(knockbackCoroutine);
+            knockbackCoroutine = null;
+        }
+        if (hurtCoroutine != null)
+        {
+            StopCoroutine(hurtCoroutine);
+            hurtCoroutine = null;
+        }
+
+        isKnockedBack = false;
+        isHurt = true;
+    }
+
+    private void PlayHurtFeedback()
+    {
+        if (animator != null)
+            animator.SetTrigger(hurtTriggerName);
+        StopParticle(idleParticles);
+        PlayParticle(hurtParticles);
     }
 
     public void Alert()
@@ -148,7 +243,8 @@ public class EnemyController : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
-        agent.enabled = true;
+        if (!comboStunned && !impulseFlying)
+            agent.enabled = true;
         isKnockedBack = false;
         knockbackCoroutine = null;
 
@@ -160,6 +256,12 @@ public class EnemyController : MonoBehaviour
     private void OnDamaged(int damage)
     {
         Alert();
+        if (comboStunned || impulseFlying)
+        {
+            if (animator != null)
+                animator.SetTrigger(hurtTriggerName);
+            return;
+        }
         // Если уже в нокбэке, не запускаем стан (урон всё равно нанесён)
         if (!isKnockedBack && !isHurt)
         {
@@ -213,6 +315,13 @@ public class EnemyController : MonoBehaviour
         StopParticle(hurtParticles);
 
         Destroy(gameObject, 0.5f);
+    }
+
+    private void OnDestroy()
+    {
+        if (health == null) return;
+        health.onDamaged.RemoveListener(OnDamaged);
+        health.onDeath.RemoveListener(OnDeath);
     }
 
     private void PlayParticle(ParticleSystem ps)
